@@ -8,7 +8,7 @@
 }
 
 main {
-  @apply h-full grow;
+  @apply h-full grow flex flex-col;
 }
 
 /* Style Header */
@@ -16,4 +16,12 @@ header {
   a {
     @apply text-main-800 underline decoration-transparent hover:decoration-secondary-400 decoration-3 underline-offset-8 transition duration-150 ease-in-out;
   }
+}
+
+a.active{
+  @apply text-secondary-400
+}
+
+.btn {
+  @apply bg-main-800 text-main-50 py-2 px-4 rounded-lg no-underline outline-2 outline-transparent hover:outline-main-800 hover:bg-transparent hover:text-main-800 cursor-pointer;
 }
