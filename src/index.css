@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@import './theme.css';
+
+/* Style global de mon app */
+#root {
+  @apply font-poppins min-h-screen flex flex-col;
+}
+
+main {
+  @apply h-full grow;
+}
+
+/* Style Header */
+header {
+  a {
+    @apply text-main-800 underline decoration-transparent hover:decoration-secondary-400 decoration-3 underline-offset-8 transition duration-150 ease-in-out;
+  }
+}
