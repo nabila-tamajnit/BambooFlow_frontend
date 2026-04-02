@@ -1,4 +1,5 @@
 import App from "./App"
+import { Login } from "./features/auth/pages/Login"
 import { Register } from "./features/auth/pages/Register"
 import { Faq } from "./features/faq/pages/Faq"
 import { TaskDetails } from "./features/tasks/pages/TaskDetails"
@@ -41,6 +42,10 @@ export const routes = [
                     {
                         path : 'register',
                         element : <Register />
+                    },
+                    {
+                        path : 'login',
+                        element : <Login />
                     }
                 ]
             },
