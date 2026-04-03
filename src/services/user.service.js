@@ -10,7 +10,7 @@ const userService = {
 
         const response = await axios.get("http://localhost:3000/api/users", {
             headers : {
-                Authorization: 'Bearer MonSuperToken'
+                Authorization: `Bearer ${token}`
             }
         })
 
