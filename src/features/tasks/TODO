@@ -1,7 +1,14 @@
 ☐ Faire page avec toutes les tâches
+    ✔ Préparer la route et le composant @done(26-03-31 16:04)
+    ☐ Faire la logique de la page avec call API
+
+☐ Faire page pour voir les détails d'une tâche en particulier
     ☐ Préparer la route et le composant
     ☐ Faire la logique de la page avec call API
 
-☐ Faire page pour voir les détails d'une têche en particulier
-    ☐ Préparer la route et les composant
-    ☐ 
+☐ Faire page pour ajouter une tâche
+
+☐ Faire page pour modifier une tâche
+
+Note : 
+    Extension : Todo+

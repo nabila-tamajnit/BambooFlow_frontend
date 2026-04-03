@@ -1,5 +1,4 @@
 
-
 export const NotFound = () => {
 
     return (
@@ -8,10 +7,7 @@ export const NotFound = () => {
 
             <h2 className="text-lg text-main-800">La ressource que vous cherchez n'existe pas</h2>
 
-            <img
-                className="h-56"
-                src="/images/duck_404.png"
-                alt="image de canard cubique" />
+            <img className="h-56" src="/images/duck_404.png" alt="image de canard cubique" />
         </section>
     )
 }

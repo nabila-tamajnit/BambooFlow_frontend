@@ -1,0 +1,32 @@
+[
+  {
+    "id": "duck-42-auth",
+    "question": "Pourquoi dois‑je m'authentifier pour accéder aux fonctionnalités avancées de Pro'Duck'Tivity!",
+    "response": "L'authentification permet de sécuriser vos données et d'assurer la communication avec notre API pédagogique."
+  },
+  {
+    "id": "duck-secure-egg-3",
+    "question": "Mes données sont-elles réellement protégées lorsque je synchronise mes tâches ?",
+    "response": "Oui, elles sont transmises via une API sécurisée et utilisées uniquement dans le cadre de l'apprentissage."
+  },
+  {
+    "id": "duck-offline-panic-9",
+    "question": "Puis-je utiliser Pro'Duck'Tivity! si je perds ma connexion Internet en plein milieu d'un Pomodoro ?",
+    "response": "Le minuteur continue localement, mais la synchronisation et certaines fonctionnalités nécessiteront le retour de la connexion."
+  },
+  {
+    "id": "duck-cosmic-judge-∞",
+    "question": "Si je clique 42 fois sur le bouton 'Ajouter une tâche', est-ce que le Grand Canard Cosmique apparaît pour me juger ?",
+    "response": "oui"
+  },
+  {
+    "id": "duck-api-chaos-7",
+    "question": "Que faire si l'API refuse soudainement de répondre alors que tout fonctionnait hier ?",
+    "response": "Dans un contexte pédagogique, cela arrive parfois. Vérifiez votre connexion, vos identifiants et contactez votre formateur si le problème persiste."
+  },
+  {
+    "id": "duck-boss-mode-666",
+    "question": "Pourquoi un canard en costard-cravate me fixe-t-il intensément lorsque je dépasse mon temps de pause ?",
+    "response": "C'est une fonctionnalité expérimentale destinée à encourager la discipline. Ou la peur. On hésite encore."
+  }
+]

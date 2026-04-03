@@ -1,0 +1,8 @@
+✔ Faire page création de compte @done(26-04-02 09:22)
+✔ Tester la page register @done(26-04-02 11:40)
+✔ Corriger le serveur WebAPI (Spoiler !) @done(26-04-02 11:40)
+✔ Faire page login @done(26-04-02 12:07)
+✔ Afficher le token @done(26-04-02 13:18)
+
+✔ Utiliser un state management pour stocker le token @done(26-04-03 12:03)
+✔ Adapter le site quand on est connecté @done(26-04-03 12:03)
