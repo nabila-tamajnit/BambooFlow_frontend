@@ -1,15 +1,16 @@
-import App from "./App"
-import { Login } from "./features/auth/pages/Login"
-import { Register } from "./features/auth/pages/Register"
-import { Faq } from "./features/faq/pages/Faq"
-import { TaskDetails } from "./features/tasks/pages/TaskDetails"
-import { TaskHome } from "./features/tasks/pages/TastHome"
-import { About } from "./layout/pages/About"
-import { Home } from "./layout/pages/Home"
-import { NotFound } from "./layout/pages/NotFound"
+import App from "./App";
+import { ProtectedPage } from './features/auth/components/ProtectedPage';
+import { Login } from './features/auth/pages/Login';
+import { Register } from './features/auth/pages/Register';
+import { About } from './features/info/pages/About';
+import { Faq } from './features/info/pages/Faq';
+import { TaskDetails } from "./features/tasks/pages/TaskDetails";
+import { TaskHome } from "./features/tasks/pages/TaskHome";
+import { Home } from "./layout/pages/Home";
+import { NotFound } from "./layout/pages/NotFound";
 
 /**
- * @type {import("react-router").RouteObject[]}
+ * @type { import("react-router").RouteObject}
  */
 export const routes = [
     {
@@ -17,39 +18,45 @@ export const routes = [
         element : <App />,
         children : [
             {
-                index : true,
+                index : true, 
+                /* pour indiquer que c'est l'accueil du path '/' */
                 element : <Home />
             },
             {
                 path : 'tasks',
-                element : <TaskHome />
+                element : <ProtectedPage><TaskHome /></ProtectedPage>
             },
+            // Pour créer une route dynamique
             {
                 path : 'task/:id',
-                element : <TaskDetails />
+                element : <ProtectedPage><TaskDetails /></ProtectedPage>
             },
             {
-                path : 'about',
-                element : <About />
+                path : 'auth',
+                children: [
+                    {
+                        path: 'register',
+                        element: <Register />
+                    },
+                    {
+                        path: 'login',
+                        element: <Login />
+                    },
+                ]
             },
             {
                 path : 'faq',
                 element : <Faq />
             },
             {
-                path : 'auth',
-                children : [
-                    {
-                        path : 'register',
-                        element : <Register />
-                    },
-                    {
-                        path : 'login',
-                        element : <Login />
-                    }
-                ]
+                path : 'about',
+                element : <About />
             },
-            // Si aucun chemin n'est défini au dessus
+
+
+
+
+            // Chemin qui signifie "si aucun des chemins définis au dessus" donc attention à toujours le mettre en dernier
             {
                 path : '*',
                 element : <NotFound />
