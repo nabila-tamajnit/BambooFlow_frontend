@@ -1,44 +1,45 @@
-/* Pour importer les fonts de notre dossier fonts */
-@font-face{
+@font-face {
     font-family: 'Poppins';
     src: url("/fonts/Poppins-Regular.ttf") format("truetype");
 }
 
-@font-face{
+@font-face {
     font-family: 'Chewy';
     src: url("/fonts/Chewy-Regular.ttf") format("truetype");
 }
 
-
 @theme {
     /* Fonts */
-    --font-poppins : 'Poppins';
-    --font-chewy : 'Chewy';
+    --font-poppins: 'Poppins', sans-serif;
+    --font-chewy: 'Chewy', cursive;
 
-    /* Couleur principale */
-    --color-main-50: #f2fbf8;
-    --color-main-100: #d4f3e8;
-    --color-main-200: #a8e7d3;
-    --color-main-300: #74d4b9;
-    --color-main-400: #44b397;
-    --color-main-500: #2e9e84;
-    --color-main-600: #237e6a;
-    --color-main-700: #1f6658;
-    --color-main-800: #1d5248;
-    --color-main-900: #1c453d;
-    --color-main-950: #0b2824;
+    /* Palette Bamboo (Verts) */
+    --color-main-50: #f4f9f4;
+    --color-main-100: #e6f2e6;
+    --color-main-200: #cce5cc;
+    --color-main-300: #99cc99;
+    --color-main-400: #66b266;
+    --color-main-500: #429942; /* Le vert bambou de base */
+    --color-main-600: #357a35;
+    --color-main-700: #285c28;
+    --color-main-800: #1a3d1a; /* Pour tes titres foncés */
+    --color-main-900: #0d1f0d;
+    --color-main-950: #050f05;
 
-    /* Couleur secondaire */
-    --color-secondary-50: #fff8eb;
-    --color-secondary-100: #feebc7;
-    --color-secondary-200: #fdd68a;
-    --color-secondary-300: #fdba4c;
-    --color-secondary-400: #fca937;
-    --color-secondary-500: #f67d0a;
-    --color-secondary-600: #da5905;
-    --color-secondary-700: #b53a08;
-    --color-secondary-800: #922d0e;
-    --color-secondary-900: #78260f;
-    --color-secondary-950: #451103;
+    /* Palette Miel/Soleil (Oranges/Jaunes) - Pour l'énergie et les alertes */
+    --color-secondary-50: #fffdf2;
+    --color-secondary-100: #fff9e6;
+    --color-secondary-200: #fff0b3;
+    --color-secondary-300: #ffe166;
+    --color-secondary-400: #ffcc1a;
+    --color-secondary-500: #e6b400;
+    --color-secondary-600: #b38c00;
+    --color-secondary-700: #806300;
+}
 
+/* styles globaux */
+body {
+    font-family: var(--font-poppins);
+    background-color: var(--color-main-50);
+    color: var(--color-main-900);
 }
