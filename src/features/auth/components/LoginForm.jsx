@@ -25,18 +25,33 @@ export function LoginForm() {
     };
 
     return (
-        <form action={handleLoginSubmit} className='flex flex-col gap-2'>
-            <div className='flex flex-row gap-2 items-center'>
-                <label htmlFor={id + 'email'} className='label-form'>Email :</label>
-                <input id={id + 'email'} type='email' className='input-form' name='email' />
+        <form action={handleLoginSubmit} className="flex flex-col gap-6 relative">
+            <div className="flex flex-col gap-2">
+                <label htmlFor={id + 'email'} className="label-form">Email</label>
+                <input 
+                    id={id + 'email'} 
+                    type="email" 
+                    className="input-form" 
+                    name="email" 
+                    placeholder="panda@bambooflow.com" 
+                />
             </div>
-            <div className='flex flex-row gap-2 items-center'>
-                <label htmlFor={id + 'password'} className='label-form'>Mot de passe :</label>
-                <input id={id + 'password'} type='password' className='input-form' name='password' />
+
+            <div className="flex flex-col gap-2">
+                <label htmlFor={id + 'password'} className="label-form">Mot de passe</label>
+                <input 
+                    id={id + 'password'} 
+                    type="password" 
+                    className="input-form" 
+                    name="password" 
+                    placeholder="••••••••" 
+                />
             </div>
-            <div>
-                <button type="submit" className='btn'>Se connecter 🦊</button>
-            </div>
+
+            <button type="submit" className="btn w-full py-4 text-lg shadow-lg shadow-main-200 mt-2 flex items-center justify-center gap-2 group">
+                Se connecter 
+                <span className="group-hover:translate-x-1 transition-transform">🌿</span>
+            </button>
         </form>
-    )
+    );
 }

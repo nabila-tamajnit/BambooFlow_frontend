@@ -1,50 +1,45 @@
 import { useId } from 'react';
 import authService from '../../../services/auth.service';
 import { useNavigate } from 'react-router';
+import { User, Mail, Lock, UserCircle } from "lucide-react";
 
 export function RegisterForm() {
-
-    const id = useId(); // Id d'accessibilité → :r1: (UNIQUEMENT pour l'UX)
+    const id = useId();
     const navigate = useNavigate();
 
     const handleRegisterSubmit = async (formData) => {
-        // Les données sont récupéré sous la forme d'une FormData -> Necessite un name !!!
-        console.log('FormData', formData);
-
-        // Conversion des données vers un objet JS
-        //* Attention, se base sur la valeur des champs (checkbox → "on")
         const data = Object.fromEntries(formData.entries());
-        console.log('Data', data);
-        // Dans notre cas, il faut transformer le formData en object JS car la WebAPI ne s'attend pas a recevoir des données du type "FormData"
-
-        // Utiliser le service qui permet de contacter la WebAPI
         await authService.register(data);
-
-        // Redirection vers la page d'accueil
         navigate('/');
     }
 
     return (
-        <form action={handleRegisterSubmit}  className='flex flex-col gap-2'>
-            <div  className='flex flex-row gap-2 items-center'>
-                <label htmlFor={id + 'email'} className='label-form'>Email d'utilisateur :</label>
-                <input id={id + 'email'} type='email'  className='input-form' name='email' />
+        <form action={handleRegisterSubmit} className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor={id + 'firstname'} className="label-form">Prénom</label>
+                    <input id={id + 'firstname'} type="text" className="input-form" name="firstname" placeholder="Ex: Jean" required />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <label htmlFor={id + 'lastname'} className="label-form">Nom</label>
+                    <input id={id + 'lastname'} type="text" className="input-form" name="lastname" placeholder="Ex: Dupont" required />
+                </div>
             </div>
-            <div  className='flex flex-row gap-2 items-center'>
-                <label htmlFor={id + 'firstname'} className='label-form'>Prénom :</label>
-                <input id={id + 'firstname'} type='text'  className='input-form' name='firstname' />
+
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor={id + 'email'} className="label-form">Email</label>
+                <input id={id + 'email'} type="email" className="input-form" name="email" placeholder="jean@exemple.com" required />
             </div>
-            <div  className='flex flex-row gap-2 items-center'>
-                <label htmlFor={id + 'lastname'} className='label-form'>Nom :</label>
-                <input id={id + 'lastname'} type='text'  className='input-form' name='lastname' />
+
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor={id + 'password'} className="label-form">Mot de passe</label>
+                <input id={id + 'password'} type="password" className="input-form" name="password" placeholder="••••••••" required />
             </div>
-            <div  className='flex flex-row gap-2 items-center'>
-                <label htmlFor={id + 'password'} className='label-form'>Mot de passe :</label>
-                <input id={id + 'password'} type='password'  className='input-form' name='password' />
-            </div>
-            <div>
-                <button type="submit" className='btn'>S'enregister 💖</button>
-            </div>
+
+            <button type="submit" className="btn w-full py-4 text-lg shadow-lg shadow-main-200 mt-4 flex items-center justify-center gap-2 group">
+                Planter mon compte 
+                <span className="group-hover:rotate-12 transition-transform">🌱</span>
+            </button>
         </form>
     );
 }
