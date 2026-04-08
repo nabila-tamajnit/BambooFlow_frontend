@@ -1,76 +1,141 @@
-import { NavLink } from "react-router"; // Vérifie bien si c'est 'react-router-dom' ou 'react-router' selon ta version
+import { useState, useEffect } from 'react';
+import { useAtomValue } from 'jotai';
+import { isConnectAtom } from '../../../atoms/auth.atom'; // Vérifie bien ce chemin
 import { TaskUserSelector } from '../components/TaskUserSelector';
-import { LayoutDashboard, CheckCircle2, Leaf, Sparkles } from "lucide-react";
+import { TaskList } from '../components/TaskList';
+import { TaskAddForm } from '../components/TaskAddForm';
+import taskService from '../../../services/task.service';
+import userService from '../../../services/user.service';
+import categoryService from '../../../services/category.service';
+import { Leaf, Sparkles, Plus, X } from "lucide-react";
 
 export const TaskHome = () => {
-    // Simulation de données pour éviter l'erreur (à remplacer par tes vrais données d'API plus tard)
-    const demoTasks = [
-        { id: 1, title: "Arroser les jeunes pousses", cat: "Urgent" },
-        { id: 2, title: "Nettoyer l'espace de méditation", cat: "Quotidien" }
-    ];
+    const [allUsers, setAllUsers] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [tasks, setTasks] = useState([]);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Chargement initial des données pour le formulaire
+    useEffect(() => {
+        userService.getAll()
+            .then(data => setAllUsers(data))
+            .catch(err => console.error("Erreur membres:", err));
+
+        categoryService.getAll()
+            .then(data => setCategories(data))
+            .catch(err => console.error("Erreur catégories:", err));
+    }, []);
+
+    // LOGIQUE DU PROF : Sélectionner un utilisateur
+    const handleUserSelect = async (user) => {
+    setTasks([]); 
+    setSelectedUser(user);
+    setIsLoading(true);
+
+    try {
+        const response = await taskService.getByUserId(user._id);
+        
+        // CORRECTION : On accède au premier élément [0], puis à tasksToDo
+        // On ajoute des sécurités (?.) au cas où la réponse changerait
+        const tasksToDisplay = response[0]?.tasksToDo || [];
+        
+        console.log("Les pousses sont prêtes :", tasksToDisplay);
+        setTasks(tasksToDisplay);
+        
+    } catch (error) {
+        console.error("Erreur lors de la récolte :", error);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+
+
+    // LOGIQUE : Ajouter une tâche (Traduction Front -> Back)
+    const handleAddTask = async (formData) => {
+        try {
+            const cleanData = {
+                name: formData.title,
+                before: formData.before || "",
+                categoryId: formData.categoryId,
+                toUserId: formData.assignedTo,
+                fromUserId: allUsers[0]?._id, // Simulation de l'auteur (toi)
+                isDone: false
+            };
+
+            await taskService.create(cleanData);
+            setShowAddForm(false);
+
+            // Si on ajoute une tâche pour l'user actuellement affiché, on rafraîchit
+            if (selectedUser && cleanData.toUserId === selectedUser._id) {
+                handleUserSelect(selectedUser);
+            }
+        } catch (error) {
+            console.error("Erreur lors de la création :", error);
+        }
+    };
 
     return (
-        <main className="p-4 md:p-8 space-y-8">
-            {/* Header avec ton logo actuel */}
-            <section className="flex flex-col md:flex-row items-center gap-6 bg-white p-8 rounded-[2.5rem] border border-main-100 shadow-sm">
-                <div className="relative">
-                    <img className="w-32 md:w-40 drop-shadow-md" src="/icons/bambooflow_logo.svg" alt="Logo" />
-                    <div className="absolute -bottom-2 -right-2 bg-secondary-400 text-white p-2 rounded-full shadow-lg">
-                        <Sparkles size={16} />
+        <main className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+            {/* Header BambooFlow */}
+            <section className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-main-100 shadow-sm">
+                <div className="flex items-center gap-6">
+                    <img className="w-24 md:w-32" src="/icons/bambooflow_logo.svg" alt="Logo" />
+                    <div>
+                        <h1 className="text-3xl font-chewy text-main-800">Ma Forêt</h1>
+                        <p className="text-main-600 font-medium italic">Gérez les pousses de l'équipe.</p>
                     </div>
                 </div>
 
-                <div className="text-center md:text-left">
-                    <h1 className="text-3xl md:text-4xl font-chewy text-main-800">
-                        Bamboo<span className="text-main-500">Flow</span>
-                    </h1>
-                    <p className="text-main-600 mt-1 font-medium">Olala, tu as plein de tâches à faire !</p>
-                </div>
+                <button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    className={`btn flex items-center gap-2 ${showAddForm ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                >
+                    {showAddForm ? <X size={20} /> : <Plus size={20} />}
+                    {showAddForm ? 'Annuler' : 'Planter une pousse'}
+                </button>
             </section>
 
-            {/* Grille Bento */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Sélecteur d'utilisateur */}
-                <section className="md:col-span-2 bento-card">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-main-100 rounded-xl text-main-600">
-                            <Leaf size={20} />
-                        </div>
-                        <h2 className="text-xl font-bold text-main-800">Membres de la forêt</h2>
-                    </div>
-                    <TaskUserSelector />
-                </section>
+            {/* Formulaire d'ajout */}
+            {showAddForm && (
+                <div className="animate-in fade-in zoom-in duration-300">
+                    <TaskAddForm
+                        users={allUsers}
+                        categories={categories}
+                        onAddTask={handleAddTask}
+                    />
+                </div>
+            )}
 
-                {/* Widget de progression rapide */}
-                <section className="bento-card bg-main-800 text-white border-none shadow-main-200 shadow-xl">
-                    <h3 className="text-main-200 font-medium mb-2">Énergie du Panda</h3>
-                    <div className="text-4xl font-bold mb-4">75%</div>
-                    <div className="w-full bg-main-700 h-2 rounded-full overflow-hidden">
-                        <div className="bg-secondary-400 h-full w-[75%]" />
-                    </div>
-                    <p className="text-xs mt-4 text-main-300 italic">"Encore quelques efforts pour une récolte parfaite !"</p>
-                </section>
-
-                {/* Liste des tâches simplifiée */}
-                <section className="md:col-span-3 bento-card">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <aside className="lg:col-span-1 bento-card h-fit">
                     <h2 className="text-xl font-bold text-main-800 mb-6 flex items-center gap-2">
-                        <CheckCircle2 className="text-secondary-500" size={24} />
-                        Tes missions prioritaires
+                        <Leaf className="text-main-500" size={20} /> Membres
                     </h2>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {demoTasks.map((task) => (
-                            <NavLink 
-                                key={task.id} 
-                                to={`/task/${task.id}`}
-                                className="group p-4 rounded-2xl border border-main-50 bg-main-50/30 hover:bg-white hover:border-secondary-300 hover:shadow-md transition-all"
-                            >
-                                <span className="text-xs font-bold text-main-400 uppercase tracking-wider">{task.cat}</span>
-                                <h4 className="font-bold text-main-800 group-hover:text-secondary-600">{task.title}</h4>
-                            </NavLink>
-                        ))}
-                    </div>
+                    <TaskUserSelector onUserSelected={handleUserSelect} />
+                </aside>
+
+                <section className="lg:col-span-2">
+                    {selectedUser ? (
+                        <div className="space-y-6">
+                            <h2 className="text-2xl font-chewy text-main-800 px-2">
+                                Pousses de {selectedUser.firstname}
+                            </h2>
+                            {isLoading ? (
+                                <p className="p-10 text-center animate-pulse text-main-400">Récolte en cours...</p>
+                            ) : (
+                                <TaskList tasks={tasks} />
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-white/50 border-2 border-dashed border-main-200 rounded-[3rem] p-20 text-center">
+                            <p className="text-main-400 font-medium italic">
+                                Sélectionnez un membre pour voir sa forêt.
+                            </p>
+                        </div>
+                    )}
                 </section>
             </div>
         </main>
