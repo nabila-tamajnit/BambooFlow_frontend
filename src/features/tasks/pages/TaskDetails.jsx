@@ -2,12 +2,18 @@ import { useEffect, useState } from 'react';
 import { NavLink, useParams } from "react-router"; // Garde ton import habituel
 import taskService from '../../../services/task.service';
 import { ArrowLeft, Calendar, User, Tag, CheckCircle, Sprout } from "lucide-react";
+import { act } from 'react';
 
 export const TaskDetails = () => {
     const { id } = useParams();
     const [task, setTask] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    
+
+    const colorMap = {
+        green: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        yellow: "bg-amber-50 text-amber-700 border-amber-200",
+        red: "bg-red-50 text-red-700 border-red-200"
+    };
 
     useEffect(() => {
         setIsLoading(true);
@@ -40,6 +46,10 @@ export const TaskDetails = () => {
         return <p className="text-center p-20 font-bold text-red-500">Oups ! Cette pousse a disparu de la forêt. 🦆</p>;
     }
 
+    // On récupère la couleur (ex: "red") et on applique le style
+    const activeStyle = colorMap[task.categoryId?.color] || colorMap.green;
+    console.log("Date :", task.before);
+
     return (
         <main className="max-w-4xl mx-auto p-6 lg:p-12">
             {/* Lien de retour stylisé */}
@@ -65,7 +75,7 @@ export const TaskDetails = () => {
                         <span className="bg-main-100 text-main-700 text-[10px] uppercase font-black px-4 py-1.5 rounded-full border border-main-200 tracking-widest">
                             Fiche de Mission
                         </span>
-                        <span className="bg-secondary-100 text-secondary-700 text-[10px] uppercase font-black px-4 py-1.5 rounded-full border border-secondary-200">
+                        <span className={`text-[10px] uppercase font-black px-4 py-1.5 rounded-full border ${activeStyle}`}>
                             Priorité : {task.categoryId?.priority || "Normale"}
                         </span>
                     </div>
@@ -86,8 +96,11 @@ export const TaskDetails = () => {
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-main-400">Date de récolte</p>
                                 <p className="font-bold text-main-800">
-                                    {task.before ? new Date(task.before).toLocaleDateString('fr-FR') : "Dès que possible"}
+                                    {task.before ?
+                                        new Date(task.before.split('-').reverse().join('-')).toLocaleDateString('fr-FR')
+                                        : "Dès que possible"}
                                 </p>
+
                             </div>
                         </div>
 
