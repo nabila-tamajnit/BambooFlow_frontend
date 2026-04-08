@@ -1,10 +1,13 @@
 import { atom } from 'jotai';
 
-// Atom qui stock le token
-export const tokenAtom = atom(null);
+// On récupère le token stocké (s'il existe) dès l'ouverture du site
+const savedToken = localStorage.getItem('bamboo_token');
 
-// Atom dérivé qui représente l'etat de connection
+// On initialise l'atome avec la valeur sauvegardée au lieu de null
+export const tokenAtom = atom(savedToken);
+
+// Atom dérivé pour l'état de connexion
 export const isConnectAtom = atom((get) => {
     const token = get(tokenAtom);
-    return token !== null;
+    return token !== null && token !== undefined;
 });
