@@ -8,31 +8,32 @@ import { TaskDetails } from "./features/tasks/pages/TaskDetails";
 import { TaskHome } from "./features/tasks/pages/TaskHome";
 import { Home } from "./layout/pages/Home";
 import { NotFound } from "./layout/pages/NotFound";
+import { Pomodoro } from './features/pomodoro/pages/Pomodoro';
 
 /**
  * @type { import("react-router").RouteObject}
  */
 export const routes = [
     {
-        path : '/',
-        element : <App />,
-        children : [
+        path: '/',
+        element: <App />,
+        children: [
             {
-                index : true, 
+                index: true,
                 /* pour indiquer que c'est l'accueil du path '/' */
-                element : <Home />
+                element: <Home />
             },
             {
-                path : 'tasks',
-                element : <ProtectedPage><TaskHome /></ProtectedPage>
+                path: 'tasks',
+                element: <ProtectedPage><TaskHome /></ProtectedPage>
             },
             // Pour créer une route dynamique
             {
-                path : 'task/:id',
-                element : <ProtectedPage><TaskDetails /></ProtectedPage>
+                path: 'task/:id',
+                element: <ProtectedPage><TaskDetails /></ProtectedPage>
             },
             {
-                path : 'auth',
+                path: 'auth',
                 children: [
                     {
                         path: 'register',
@@ -45,12 +46,16 @@ export const routes = [
                 ]
             },
             {
-                path : 'faq',
-                element : <Faq />
+                path: 'pomodoro',
+                element: <Pomodoro />
             },
             {
-                path : 'about',
-                element : <About />
+                path: 'faq',
+                element: <Faq />
+            },
+            {
+                path: 'about',
+                element: <About />
             },
 
 
@@ -58,8 +63,8 @@ export const routes = [
 
             // Chemin qui signifie "si aucun des chemins définis au dessus" donc attention à toujours le mettre en dernier
             {
-                path : '*',
-                element : <NotFound />
+                path: '*',
+                element: <NotFound />
             }
         ]
     }
