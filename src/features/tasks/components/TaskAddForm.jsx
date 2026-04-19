@@ -29,6 +29,16 @@ export function TaskAddForm({ users, categories, onAddTask }) {
                     <input id={id + 'title'} name="title" type="text" className="input-form" placeholder="Arroser le projet..." required />
                 </div>
 
+                <div className="md:col-span-2 flex flex-col gap-1.5">
+                    <label className="label-form">Description (optionnelle)</label>
+                    <textarea
+                        name="description"
+                        className="input-form resize-none"
+                        rows={3}
+                        placeholder="Décris cette pousse en détail..."
+                    />
+                </div>
+
                 <div className="flex flex-col gap-1.5">
                     <label htmlFor={id + 'assign'} className="label-form">Assigner à</label>
                     <select name="assignedTo" className="input-form">

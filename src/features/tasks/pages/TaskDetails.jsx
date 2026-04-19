@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { NavLink, useParams } from "react-router"; // Garde ton import habituel
 import taskService from '../../../services/task.service';
 import { ArrowLeft, Calendar, User, Tag, CheckCircle, Sprout } from "lucide-react";
-import { act } from 'react';
 
 export const TaskDetails = () => {
     const { id } = useParams();
     const [task, setTask] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const isOwner = task.toUserId?._id === connectedUserId;
+    const canEdit = isOwner || role === 'Admin';
+
+
 
     const colorMap = {
         green: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -118,10 +121,12 @@ export const TaskDetails = () => {
                     </div>
 
                     {/* Bouton d'action pro */}
-                    <button className="btn w-full py-5 text-xl flex items-center justify-center gap-4 group">
-                        Récolter le bambou
-                        <CheckCircle size={24} className="group-hover:scale-110 transition-transform" />
-                    </button>
+                    {canEdit && (
+                        <button className="btn w-full py-5 text-xl flex items-center justify-center gap-4 group">
+                            Récolter le bambou
+                            <CheckCircle size={24} className="group-hover:scale-110 transition-transform" />
+                        </button>
+                    )}
                 </div>
             </section>
         </main>

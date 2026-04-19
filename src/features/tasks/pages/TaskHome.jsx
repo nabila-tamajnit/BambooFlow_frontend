@@ -8,6 +8,8 @@ import taskService from '../../../services/task.service';
 import userService from '../../../services/user.service';
 import categoryService from '../../../services/category.service';
 import { Leaf, Sparkles, Plus, X } from "lucide-react";
+import { jwtDecode } from 'jwt-decode';
+import { tokenAtom } from '../../../atoms/auth.atom';
 
 export const TaskHome = () => {
     const [allUsers, setAllUsers] = useState([]);
@@ -16,6 +18,8 @@ export const TaskHome = () => {
     const [tasks, setTasks] = useState([]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const token = useAtomValue(tokenAtom);
+    const connectedUserId = token ? jwtDecode(token).id : null;
 
     // Chargement initial des données pour le formulaire
     useEffect(() => {
@@ -26,30 +30,36 @@ export const TaskHome = () => {
         categoryService.getAll()
             .then(data => setCategories(data))
             .catch(err => console.error("Erreur catégories:", err));
-    }, []);
+
+        if (connectedUserId && allUsers.length > 0) {
+            const me = allUsers.find(u => u._id === connectedUserId);
+            if (me) handleUserSelect(me);
+        }
+
+    }, [allUsers]);
 
     // LOGIQUE DU PROF : Sélectionner un utilisateur
     const handleUserSelect = async (user) => {
-    setTasks([]); 
-    setSelectedUser(user);
-    setIsLoading(true);
+        setTasks([]);
+        setSelectedUser(user);
+        setIsLoading(true);
 
-    try {
-        const response = await taskService.getByUserId(user._id);
-        
-        // CORRECTION : On accède au premier élément [0], puis à tasksToDo
-        // On ajoute des sécurités (?.) au cas où la réponse changerait
-        const tasksToDisplay = response[0]?.tasksToDo || [];
-        
-        console.log("Les pousses sont prêtes :", tasksToDisplay);
-        setTasks(tasksToDisplay);
-        
-    } catch (error) {
-        console.error("Erreur lors de la récolte :", error);
-    } finally {
-        setIsLoading(false);
-    }
-};
+        try {
+            const response = await taskService.getByUserId(user._id);
+
+            // CORRECTION : On accède au premier élément [0], puis à tasksToDo
+            // On ajoute des sécurités (?.) au cas où la réponse changerait
+            const tasksToDisplay = response[0]?.tasksToDo || [];
+
+            console.log("Les pousses sont prêtes :", tasksToDisplay);
+            setTasks(tasksToDisplay);
+
+        } catch (error) {
+            console.error("Erreur lors de la récolte :", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
 
 
