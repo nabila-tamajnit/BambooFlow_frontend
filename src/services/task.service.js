@@ -2,37 +2,24 @@ import axios from "axios";
 import { getDefaultStore } from 'jotai';
 import { tokenAtom } from "../atoms/auth.atom";
 
-// const taskService = {
-
-// Route demandée par le prof pour avoir les tâches d'un utilisateur précis
-// getByUser: async (userId) => {
-//     const token = getDefaultStore().get(tokenAtom); // On récupère le token
-
-//     const response = await axios.get(`http://localhost:3000/api/tasks/user/${userId}`, {
-//         headers: {
-//             Authorization: `Bearer ${token}` // On l'envoie obligatoirement ici
-//         }
-//     });
-//     return response.data;
-// },
-
 const taskService = {
+
+    // Retourne { tasksToDo: [], tasksGiven: [] }
     getByUserId: async (userId) => {
         const token = getDefaultStore().get(tokenAtom);
         const response = await axios.get(`http://localhost:3000/api/tasks/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-
-        // FORCE LE FORMAT TABLEAU : 
-        // Si response.data est déjà un tableau, on le garde. 
-        // Si c'est un objet seul, on l'enveloppe dans [].
-        // Si c'est nul, on renvoie [].
+        // Le backend renvoie directement { tasksToDo, tasksGiven }
+        // On s'assure de toujours retourner cet objet, jamais un tableau wrappé
         const data = response.data;
-        return Array.isArray(data) ? data : (data ? [data] : []);
+        if (Array.isArray(data)) {
+            // Cas où le backend aurait wrappé dans un tableau (legacy)
+            return data[0] || { tasksToDo: [], tasksGiven: [] };
+        }
+        return data || { tasksToDo: [], tasksGiven: [] };
     },
 
-
-    // src/services/task.service.js
     getById: async (taskId) => {
         const token = getDefaultStore().get(tokenAtom);
         const response = await axios.get(`http://localhost:3000/api/tasks/${taskId}`, {
@@ -41,20 +28,21 @@ const taskService = {
         return response.data;
     },
 
-
-    // Optionnel : Pour créer une nouvelle tâche plus tard
-    // src/services/task.service.js
     create: async (taskData) => {
         const token = getDefaultStore().get(tokenAtom);
-        // Vérifie bien que l'URL est exactement celle du backend
         const response = await axios.post("http://localhost:3000/api/tasks", taskData, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
+    updateStatus: async (taskId, isDone) => {
+        const token = getDefaultStore().get(tokenAtom);
+        const response = await axios.patch(`http://localhost:3000/api/tasks/${taskId}`, { isDone }, {
+            headers: { Authorization: `Bearer ${token}` }
         });
         return response.data;
     }
-
 };
 
 export default taskService;
