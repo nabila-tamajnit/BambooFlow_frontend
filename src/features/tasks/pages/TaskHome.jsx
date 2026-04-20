@@ -4,39 +4,48 @@ import { tokenAtom, roleAtom } from '../../../atoms/auth.atom';
 import { TaskUserSelector } from '../components/TaskUserSelector';
 import { TaskList } from '../components/TaskList';
 import { TaskAddForm } from '../components/TaskAddForm';
+import { MemberPanel } from '../components/MemberPanel';
 import taskService from '../../../services/task.service';
 import userService from '../../../services/user.service';
 import categoryService from '../../../services/category.service';
-import { Leaf, Plus, X, User } from 'lucide-react';
+import { Leaf, Plus, X } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 
 export const TaskHome = () => {
     const token = useAtomValue(tokenAtom);
     const role = useAtomValue(roleAtom);
-
-    // Décode l'id du user connecté depuis le token
     const connectedUserId = token ? jwtDecode(token).id : null;
 
+    // ── Données globales ──────────────────────────────────────────────────
+    // allUsers est défini ici et passé en props à TaskUserSelector.
+    // C'est TaskHome qui appelle userService.getAll() — un seul appel API.
     const [allUsers, setAllUsers] = useState([]);
     const [categories, setCategories] = useState([]);
-
-    // Tâches du user connecté (section principale)
-    const [myTasksToDo, setMyTasksToDo] = useState([]);
-    const [myTasksGiven, setMyTasksGiven] = useState([]);
-
-    // Tâches d'un autre membre sélectionné (lecture seule)
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [selectedUserTasks, setSelectedUserTasks] = useState([]);
-
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [isLoadingMyTasks, setIsLoadingMyTasks] = useState(false);
-    const [isLoadingOther, setIsLoadingOther] = useState(false);
-    const [formError, setFormError] = useState(null);
     const [globalError, setGlobalError] = useState(null);
+    const [isInitLoading, setIsInitLoading] = useState(true);
 
-    // ─── Chargement initial : users + categories ───────────────────────────
+    // ── Tâches du user connecté ───────────────────────────────────────────
+    // On fusionne tasksToDo + tasksGiven pour les grouper via TaskList groupBy
+    const [myTasks, setMyTasks] = useState([]);
+    const [isLoadingMyTasks, setIsLoadingMyTasks] = useState(false);
+
+    // ── Panneau membre sélectionné ────────────────────────────────────────
+    const [panelUser, setPanelUser] = useState(null);      // user affiché dans le panneau
+    const [panelTasks, setPanelTasks] = useState([]);
+    const [isPanelLoading, setIsPanelLoading] = useState(false);
+
+    // ── Formulaire ajout ──────────────────────────────────────────────────
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [formError, setFormError] = useState(null);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CHARGEMENT INITIAL : users + categories (une seule fois)
+    // allUsers est ensuite passé en props à TaskUserSelector — c'est ici
+    // qu'il est défini, pas dans le composant enfant.
+    // ─────────────────────────────────────────────────────────────────────
     useEffect(() => {
         const init = async () => {
+            setIsInitLoading(true);
             try {
                 const [users, cats] = await Promise.all([
                     userService.getAll(),
@@ -46,21 +55,31 @@ export const TaskHome = () => {
                 setCategories(cats);
             } catch (err) {
                 console.error('Erreur init:', err);
-                setGlobalError('Erreur lors du chargement des données initiales.');
+                setGlobalError('Impossible de charger les données. Vérifie que le serveur est lancé.');
+            } finally {
+                setIsInitLoading(false);
             }
         };
         init();
-    }, []); // Une seule fois au montage
+    }, []);
 
-    // ─── Charger les tâches du user connecté ───────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // TÂCHES DU USER CONNECTÉ
+    // On charge tasksToDo + tasksGiven et on les fusionne pour le groupBy.
+    // ─────────────────────────────────────────────────────────────────────
     const loadMyTasks = useCallback(async () => {
         if (!connectedUserId) return;
         setIsLoadingMyTasks(true);
         try {
-            // getByUserId retourne { tasksToDo: [], tasksGiven: [] }
             const { tasksToDo = [], tasksGiven = [] } = await taskService.getByUserId(connectedUserId);
-            setMyTasksToDo(tasksToDo);
-            setMyTasksGiven(tasksGiven);
+            // Fusion avec dédoublonnage par _id (une tâche peut être dans les deux si je me l'assigne à moi-même)
+            const seen = new Set();
+            const merged = [...tasksToDo, ...tasksGiven].filter(t => {
+                if (seen.has(t._id)) return false;
+                seen.add(t._id);
+                return true;
+            });
+            setMyTasks(merged);
         } catch (err) {
             console.error('Erreur chargement mes tâches:', err);
         } finally {
@@ -72,36 +91,40 @@ export const TaskHome = () => {
         loadMyTasks();
     }, [loadMyTasks]);
 
-    // ─── Sélectionner un autre membre ──────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // SÉLECTIONNER UN MEMBRE → ouvre le panneau latéral
+    // ─────────────────────────────────────────────────────────────────────
     const handleUserSelect = useCallback(async (user) => {
-        // Ignorer si c'est le user connecté (ses tâches sont déjà affichées)
-        if (user._id === connectedUserId) return;
-
-        setSelectedUser(user);
-        setSelectedUserTasks([]);
-        setIsLoadingOther(true);
+        setPanelUser(user);
+        setPanelTasks([]);
+        setIsPanelLoading(true);
         try {
-            const { tasksToDo = [], tasksGiven = [] } = await taskService.getByUserId(user._id);
-            // On affiche ses tâches à faire (celles qui lui sont assignées)
-            setSelectedUserTasks(tasksToDo);
+            const { tasksToDo = [] } = await taskService.getByUserId(user._id);
+            setPanelTasks(tasksToDo);
         } catch (err) {
             console.error('Erreur tâches membre:', err);
         } finally {
-            setIsLoadingOther(false);
+            setIsPanelLoading(false);
         }
-    }, [connectedUserId]);
+    }, []);
 
-    // ─── Ajouter une tâche ─────────────────────────────────────────────────
+    const handleClosePanel = useCallback(() => {
+        setPanelUser(null);
+        setPanelTasks([]);
+    }, []);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // AJOUTER UNE TÂCHE (admin seulement)
+    // ─────────────────────────────────────────────────────────────────────
     const handleAddTask = async (formData) => {
         setFormError(null);
 
-        // Validation minimale côté front
         if (!formData.title?.trim()) {
             setFormError('Le nom de la tâche est obligatoire.');
             return;
         }
         if (!formData.categoryId) {
-            setFormError('Veuillez choisir une priorité (catégorie).');
+            setFormError('Veuillez choisir une priorité.');
             return;
         }
         if (!formData.assignedTo) {
@@ -119,60 +142,75 @@ export const TaskHome = () => {
                 fromUserId: connectedUserId,
                 isDone: false,
             });
-
             setShowAddForm(false);
-            // Rafraîchir mes tâches si la nouvelle m'est assignée
-            if (formData.assignedTo === connectedUserId) {
-                loadMyTasks();
-            }
-            // Rafraîchir les tâches du membre sélectionné si c'est lui qui reçoit
-            if (selectedUser && formData.assignedTo === selectedUser._id) {
-                handleUserSelect(selectedUser);
-            }
+            loadMyTasks();
         } catch (err) {
-            console.error('Erreur création tâche:', err);
-            setFormError(
-                err.response?.data?.message || 'Impossible de créer la tâche. Vérifiez les champs.'
-            );
+            console.error('Erreur création:', err);
+            setFormError(err.response?.data?.message || 'Impossible de créer la tâche.');
         }
     };
 
-    // ─── Compléter une tâche (user connecté uniquement) ───────────────────
-    const handleCompleteTask = async (taskId) => {
+    // ─────────────────────────────────────────────────────────────────────
+    // COMPLÉTER UNE TÂCHE
+    // ─────────────────────────────────────────────────────────────────────
+    const handleCompleteTask = useCallback(async (taskId) => {
         try {
             await taskService.updateStatus(taskId, true);
             loadMyTasks();
         } catch (err) {
-            console.error('Erreur completion tâche:', err);
+            console.error('Erreur completion:', err);
         }
-    };
+    }, [loadMyTasks]);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SUPPRIMER UNE TÂCHE
+    // La vérification des permissions est aussi faite dans TaskItem,
+    // mais on la revalide ici avant l'appel API.
+    // ─────────────────────────────────────────────────────────────────────
+    const handleDeleteTask = useCallback(async (taskId) => {
+        const task = myTasks.find(t => t._id === taskId);
+        if (!task) return;
+
+        const toId = task.toUserId?._id ?? task.toUserId;
+        const fromId = task.fromUserId?._id ?? task.fromUserId;
+        const isAdmin = role === 'Admin';
+        const isPlantedByMe = fromId === connectedUserId;
+        const isAssignedToMeAndDone = toId === connectedUserId && task.isDone;
+
+        if (!isAdmin && !isPlantedByMe && !isAssignedToMeAndDone) return;
+
+        if (!window.confirm('Supprimer cette pousse définitivement ?')) return;
+
+        try {
+            await taskService.delete(taskId);
+            loadMyTasks();
+        } catch (err) {
+            console.error('Erreur suppression:', err);
+        }
+    }, [myTasks, role, connectedUserId, loadMyTasks]);
 
     const connectedUser = allUsers.find(u => u._id === connectedUserId);
 
     return (
         <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
 
-            {/* ── Header ─────────────────────────────────────────────────── */}
-            <section className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-main-100 shadow-sm">
-                <div className="flex items-center gap-6">
-                    <img className="w-24 md:w-32" src="/icons/bambooflow_logo.svg" alt="Logo BambooFlow" />
+            {/* ── Header ──────────────────────────────────────────────── */}
+            <section className="flex flex-wrap justify-between items-center gap-4 bg-white p-6 md:p-8 rounded-[2.5rem] border border-main-100 shadow-sm">
+                <div className="flex items-center gap-5">
+                    <img className="w-20 md:w-28" src="/icons/bambooflow_logo.svg" alt="Logo BambooFlow" />
                     <div>
-                        <h1 className="text-3xl font-chewy text-main-800">
+                        <h1 className="text-2xl md:text-3xl font-chewy text-main-800">
                             Bonjour {connectedUser?.firstname || '...'} 🌿
                         </h1>
-                        <p className="text-main-500 font-medium text-sm italic mt-1">
-                            {role === 'Admin'
-                                ? 'Vous gérez la forêt 🎋'
-                                : 'Voici votre forêt du jour.'}
+                        <p className="text-main-500 text-sm italic mt-0.5">
+                            {role === 'Admin' ? 'Vous gérez la forêt 🎋' : 'Voici votre forêt du jour.'}
                         </p>
                     </div>
                 </div>
-
-                {/* Bouton "Planter" visible uniquement pour l'admin */}
                 {role === 'Admin' && (
                     <button
-                        onClick={() => { setShowAddForm(!showAddForm); setFormError(null); }}
-                        className={`btn flex items-center gap-2 ${showAddForm ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                        onClick={() => { setShowAddForm(v => !v); setFormError(null); }}
+                        className={`btn flex items-center gap-2 ${showAddForm ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : ''}`}
                     >
                         {showAddForm ? <X size={18} /> : <Plus size={18} />}
                         {showAddForm ? 'Annuler' : 'Planter une pousse'}
@@ -180,16 +218,16 @@ export const TaskHome = () => {
                 )}
             </section>
 
-            {/* ── Erreur globale ──────────────────────────────────────────── */}
+            {/* ── Erreur globale ──────────────────────────────────────── */}
             {globalError && (
-                <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-4 text-sm font-medium">
-                    {globalError}
+                <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-4 text-sm font-medium flex items-center gap-2">
+                    ⚠️ {globalError}
                 </div>
             )}
 
-            {/* ── Formulaire ajout (admin only) ───────────────────────────── */}
+            {/* ── Formulaire ajout ────────────────────────────────────── */}
             {showAddForm && role === 'Admin' && (
-                <div className="animate-in fade-in zoom-in duration-300">
+                <div>
                     {formError && (
                         <div className="mb-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl p-4 text-sm font-medium">
                             {formError}
@@ -203,112 +241,72 @@ export const TaskHome = () => {
                 </div>
             )}
 
-            {/* ── Layout principal ────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* ── Layout principal ─────────────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Sidebar membres */}
+                {/* Sidebar membres
+                    ↓ allUsers est défini dans ce composant (TaskHome)
+                    ↓ et passé ici en props — TaskUserSelector ne fait aucun appel API */}
                 <aside className="lg:col-span-1 bento-card h-fit">
-                    <h2 className="text-xl font-bold text-main-800 mb-6 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-main-800 mb-5 flex items-center gap-2">
                         <Leaf className="text-main-500" size={20} />
                         Membres
                     </h2>
                     <TaskUserSelector
-                        onUserSelected={handleUserSelect}
-                        connectedUserId={connectedUserId}
                         allUsers={allUsers}
+                        connectedUserId={connectedUserId}
+                        onUserSelected={handleUserSelect}
+                        isLoading={isInitLoading}
+                        error={globalError}
                     />
                 </aside>
 
-                {/* Contenu principal */}
-                <section className="lg:col-span-2 space-y-8">
-
-                    {/* Mes pousses — section prioritaire */}
-                    <div className="bg-white rounded-[2rem] border-2 border-main-300 shadow-md p-6">
+                {/* Mes pousses */}
+                <section className="lg:col-span-2">
+                    <div className="bg-white rounded-[2rem] border-2 border-main-200 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-chewy text-main-800 flex items-center gap-2">
-                                <User size={22} className="text-main-500" />
+                            <h2 className="text-2xl font-chewy text-main-800">
                                 Mes pousses
                             </h2>
                             <span className="bg-main-100 text-main-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                                {myTasksToDo.length} à faire
+                                {myTasks.filter(t => !t.isDone).length} en cours
                             </span>
                         </div>
 
                         {isLoadingMyTasks ? (
-                            <p className="text-center text-main-400 animate-pulse py-8">
+                            <p className="text-center text-main-400 animate-pulse py-10">
                                 Chargement de vos pousses...
                             </p>
-                        ) : myTasksToDo.length === 0 ? (
-                            <div className="text-center py-10 text-main-400 italic">
-                                <p>Aucune pousse à récolter. 🌱</p>
+                        ) : myTasks.length === 0 ? (
+                            <div className="text-center py-12 text-main-400 italic">
+                                <p>Aucune pousse pour l'instant. 🌱</p>
                                 {role !== 'Admin' && (
-                                    <p className="text-sm mt-1">Un admin peut vous en assigner une !</p>
+                                    <p className="text-sm mt-1 text-main-300">Un admin peut vous en assigner une !</p>
                                 )}
                             </div>
                         ) : (
                             <TaskList
-                                tasks={myTasksToDo}
-                                canComplete={true}
+                                tasks={myTasks}
+                                connectedUserId={connectedUserId}
+                                userRole={role}
                                 onComplete={handleCompleteTask}
+                                onDelete={handleDeleteTask}
+                                groupBy={true}
                             />
                         )}
                     </div>
-
-                    {/* Tâches données par moi */}
-                    {myTasksGiven.length > 0 && (
-                        <div className="bg-white/70 rounded-[2rem] border border-main-100 shadow-sm p-6">
-                            <h2 className="text-xl font-chewy text-main-600 mb-4 flex items-center gap-2">
-                                🎋 Pousses que j'ai plantées
-                            </h2>
-                            <TaskList tasks={myTasksGiven} readOnly />
-                        </div>
-                    )}
-
-                    {/* Tâches d'un autre membre (lecture seule pour tous, sauf admin) */}
-                    {selectedUser && (
-                        <div className="bg-white/60 rounded-[2rem] border border-main-100 shadow-sm p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-chewy text-main-600 flex items-center gap-2">
-                                    🌿 Pousses de {selectedUser.firstname}
-                                </h2>
-                                <div className="flex items-center gap-2">
-                                    {role !== 'Admin' && (
-                                        <span className="bg-main-50 text-main-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-main-100">
-                                            Lecture seule
-                                        </span>
-                                    )}
-                                    <button
-                                        onClick={() => { setSelectedUser(null); setSelectedUserTasks([]); }}
-                                        className="text-main-400 hover:text-main-700 transition-colors p-1"
-                                        aria-label="Fermer"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {isLoadingOther ? (
-                                <p className="text-center text-main-400 animate-pulse py-6">
-                                    Chargement...
-                                </p>
-                            ) : selectedUserTasks.length === 0 ? (
-                                <p className="text-center text-main-400 italic py-6">
-                                    Aucune pousse pour {selectedUser.firstname}. 🌱
-                                </p>
-                            ) : (
-                                // L'admin peut compléter les tâches des autres, pas les users
-                                <TaskList
-                                    tasks={selectedUserTasks}
-                                    readOnly={role !== 'Admin'}
-                                    canComplete={role === 'Admin'}
-                                    onComplete={role === 'Admin' ? handleCompleteTask : undefined}
-                                />
-                            )}
-                        </div>
-                    )}
-
                 </section>
             </div>
+
+            {/* ── Panneau latéral membre sélectionné ──────────────────── */}
+            <MemberPanel
+                user={panelUser}
+                tasks={panelTasks}
+                isLoading={isPanelLoading}
+                onClose={handleClosePanel}
+                connectedUserId={connectedUserId}
+                userRole={role}
+            />
         </main>
     );
 };
