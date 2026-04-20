@@ -12,6 +12,7 @@ import { Loader2, AlertTriangle } from 'lucide-react';
  * - onUserSelected  : callback(user) au clic sur un membre
  * - isLoading       : true pendant le chargement initial dans TaskHome
  * - error           : message d'erreur éventuel
+ * - taskCounts      : { [userId]: number } — nb de tâches par user (optionnel)
  */
 export function TaskUserSelector({
     allUsers = [],
@@ -19,6 +20,7 @@ export function TaskUserSelector({
     onUserSelected = () => {},
     isLoading = false,
     error = null,
+    taskCounts = {},
 }) {
     const [selectedUserId, setSelectedUserId] = useState(null);
 
@@ -59,6 +61,7 @@ export function TaskUserSelector({
                 const isMe = user._id === connectedUserId;
                 const isSelected = user._id === selectedUserId;
                 const isAdmin = user.role === 'Admin';
+                const taskCount = taskCounts[user._id];
 
                 return (
                     <button
@@ -98,8 +101,19 @@ export function TaskUserSelector({
                             </span>
                         </div>
 
+                        {/* Badge nombre de tâches */}
+                        {taskCount !== undefined && taskCount > 0 && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0
+                                ${isSelected
+                                    ? 'bg-main-500 text-white'
+                                    : 'bg-main-100 text-main-600'
+                                }`}>
+                                {taskCount}
+                            </span>
+                        )}
+
                         {/* Indicateur sélectionné */}
-                        {isSelected && (
+                        {isSelected && !taskCount && (
                             <div className="w-2 h-2 rounded-full bg-main-500 shrink-0" />
                         )}
                     </button>
