@@ -4,17 +4,13 @@ import { tokenAtom } from "../atoms/auth.atom";
 
 const taskService = {
 
-    // Retourne { tasksToDo: [], tasksGiven: [] }
     getByUserId: async (userId) => {
         const token = getDefaultStore().get(tokenAtom);
         const response = await axios.get(`http://localhost:3000/api/tasks/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        // Le backend renvoie directement { tasksToDo, tasksGiven }
-        // On s'assure de toujours retourner cet objet, jamais un tableau wrappé
         const data = response.data;
         if (Array.isArray(data)) {
-            // Cas où le backend aurait wrappé dans un tableau (legacy)
             return data[0] || { tasksToDo: [], tasksGiven: [] };
         }
         return data || { tasksToDo: [], tasksGiven: [] };
@@ -42,7 +38,14 @@ const taskService = {
             headers: { Authorization: `Bearer ${token}` }
         });
         return response.data;
-    }
+    },
+
+    delete: async (taskId) => {
+        const token = getDefaultStore().get(tokenAtom);
+        await axios.delete(`http://localhost:3000/api/tasks/${taskId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+    },
 };
 
 export default taskService;
