@@ -16,34 +16,25 @@ export const TaskHome = () => {
     const role = useAtomValue(roleAtom);
     const connectedUserId = token ? jwtDecode(token).id : null;
 
-    // ── Données globales ──────────────────────────────────────────────────
-    // allUsers est défini ici et passé en props à TaskUserSelector.
-    // C'est TaskHome qui appelle userService.getAll() — un seul appel API.
     const [allUsers, setAllUsers] = useState([]);
     const [categories, setCategories] = useState([]);
     const [globalError, setGlobalError] = useState(null);
     const [isInitLoading, setIsInitLoading] = useState(true);
 
-    // ── Tâches du user connecté ───────────────────────────────────────────
     const [myTasks, setMyTasks] = useState([]);
     const [isLoadingMyTasks, setIsLoadingMyTasks] = useState(false);
 
-    // ── Compteur de tâches par user (pour les badges dans la sidebar) ─────
-    // { [userId]: number }
+    // Compteur de tâches par userId — chargé pour TOUS les users au démarrage
     const [taskCounts, setTaskCounts] = useState({});
 
-    // ── Panneau membre sélectionné ────────────────────────────────────────
     const [panelUser, setPanelUser] = useState(null);
     const [panelTasks, setPanelTasks] = useState([]);
     const [isPanelLoading, setIsPanelLoading] = useState(false);
 
-    // ── Formulaire ajout ──────────────────────────────────────────────────
     const [showAddForm, setShowAddForm] = useState(false);
     const [formError, setFormError] = useState(null);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // CHARGEMENT INITIAL : users + categories (une seule fois)
-    // ─────────────────────────────────────────────────────────────────────
+    // ── Chargement initial ────────────────────────────────────────────────
     useEffect(() => {
         const init = async () => {
             setIsInitLoading(true);
@@ -54,6 +45,22 @@ export const TaskHome = () => {
                 ]);
                 setAllUsers(users);
                 setCategories(cats);
+
+                // Charge les compteurs pour tous les users sauf le connecté
+                // (le sien sera chargé par loadMyTasks)
+                const otherUsers = users.filter(u => u._id !== connectedUserId);
+                const counts = {};
+                await Promise.all(
+                    otherUsers.map(async (u) => {
+                        try {
+                            const { tasksToDo = [] } = await taskService.getPublicUserTasks(u._id);
+                            counts[u._id] = tasksToDo.filter(t => !t.isDone).length;
+                        } catch {
+                            counts[u._id] = 0;
+                        }
+                    })
+                );
+                setTaskCounts(prev => ({ ...prev, ...counts }));
             } catch (err) {
                 console.error('Erreur init:', err);
                 setGlobalError('Impossible de charger les données. Vérifie que le serveur est lancé.');
@@ -62,18 +69,14 @@ export const TaskHome = () => {
             }
         };
         init();
-    }, []);
+    }, [connectedUserId]);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // TÂCHES DU USER CONNECTÉ
-    // Utilise getMyTasks (route protégée /user/:id) — uniquement pour soi-même.
-    // ─────────────────────────────────────────────────────────────────────
+    // ── Tâches du user connecté ───────────────────────────────────────────
     const loadMyTasks = useCallback(async () => {
         if (!connectedUserId) return;
         setIsLoadingMyTasks(true);
         try {
             const { tasksToDo = [], tasksGiven = [] } = await taskService.getMyTasks(connectedUserId);
-            // Fusion avec dédoublonnage par _id
             const seen = new Set();
             const merged = [...tasksToDo, ...tasksGiven].filter(t => {
                 if (seen.has(t._id)) return false;
@@ -81,8 +84,6 @@ export const TaskHome = () => {
                 return true;
             });
             setMyTasks(merged);
-
-            // Met à jour le compteur pour le user connecté
             setTaskCounts(prev => ({
                 ...prev,
                 [connectedUserId]: tasksToDo.filter(t => !t.isDone).length
@@ -98,20 +99,14 @@ export const TaskHome = () => {
         loadMyTasks();
     }, [loadMyTasks]);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // SÉLECTIONNER UN MEMBRE → ouvre le panneau latéral
-    // Utilise getPublicUserTasks (route publique /user/:id/tasks) — sans 403.
-    // ─────────────────────────────────────────────────────────────────────
+    // ── Sélection d'un membre ─────────────────────────────────────────────
     const handleUserSelect = useCallback(async (user) => {
         setPanelUser(user);
         setPanelTasks([]);
         setIsPanelLoading(true);
         try {
-            // ✅ getPublicUserTasks ne provoque pas de 403 pour les autres users
             const { tasksToDo = [] } = await taskService.getPublicUserTasks(user._id);
             setPanelTasks(tasksToDo);
-
-            // Met à jour le compteur pour ce membre
             setTaskCounts(prev => ({
                 ...prev,
                 [user._id]: tasksToDo.filter(t => !t.isDone).length
@@ -128,27 +123,12 @@ export const TaskHome = () => {
         setPanelTasks([]);
     }, []);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // AJOUTER UNE TÂCHE
-    // Admin : peut assigner à n'importe qui
-    // User  : s'assigne la tâche à lui-même automatiquement
-    // ─────────────────────────────────────────────────────────────────────
+    // ── Ajout d'une tâche ─────────────────────────────────────────────────
     const handleAddTask = async (formData) => {
         setFormError(null);
-
-        if (!formData.title?.trim()) {
-            setFormError('Le nom de la tâche est obligatoire.');
-            return;
-        }
-        if (!formData.categoryId) {
-            setFormError('Veuillez choisir une priorité.');
-            return;
-        }
-        // Pour un admin, le champ assignedTo est requis
-        if (role === 'Admin' && !formData.assignedTo) {
-            setFormError('Veuillez assigner la tâche à un membre.');
-            return;
-        }
+        if (!formData.title?.trim()) { setFormError('Le nom de la tâche est obligatoire.'); return; }
+        if (!formData.categoryId) { setFormError('Veuillez choisir une priorité.'); return; }
+        if (role === 'Admin' && !formData.assignedTo) { setFormError('Veuillez assigner la tâche à un membre.'); return; }
 
         try {
             await taskService.create({
@@ -156,7 +136,6 @@ export const TaskHome = () => {
                 description: formData.description?.trim() || '',
                 before: formData.before || '',
                 categoryId: formData.categoryId,
-                // Admin assigne à quelqu'un, user s'assigne à lui-même
                 toUserId: role === 'Admin' ? formData.assignedTo : connectedUserId,
                 fromUserId: connectedUserId,
                 isDone: false,
@@ -169,9 +148,7 @@ export const TaskHome = () => {
         }
     };
 
-    // ─────────────────────────────────────────────────────────────────────
-    // COMPLÉTER UNE TÂCHE
-    // ─────────────────────────────────────────────────────────────────────
+    // ── Compléter ─────────────────────────────────────────────────────────
     const handleCompleteTask = useCallback(async (taskId) => {
         try {
             await taskService.updateStatus(taskId, true);
@@ -181,24 +158,17 @@ export const TaskHome = () => {
         }
     }, [loadMyTasks]);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // SUPPRIMER UNE TÂCHE
-    // Revalide les permissions avant l'appel API.
-    // ─────────────────────────────────────────────────────────────────────
+    // ── Supprimer ─────────────────────────────────────────────────────────
     const handleDeleteTask = useCallback(async (taskId) => {
         const task = myTasks.find(t => t._id === taskId);
         if (!task) return;
-
         const toId = task.toUserId?._id ?? task.toUserId;
         const fromId = task.fromUserId?._id ?? task.fromUserId;
         const isAdmin = role === 'Admin';
         const isPlantedByMe = fromId === connectedUserId;
         const isAssignedToMeAndDone = toId === connectedUserId && task.isDone;
-
         if (!isAdmin && !isPlantedByMe && !isAssignedToMeAndDone) return;
-
         if (!window.confirm('Supprimer cette pousse définitivement ?')) return;
-
         try {
             await taskService.delete(taskId);
             loadMyTasks();
@@ -212,7 +182,6 @@ export const TaskHome = () => {
     return (
         <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
 
-            {/* ── Header ──────────────────────────────────────────────── */}
             <section className="flex flex-wrap justify-between items-center gap-4 bg-white p-6 md:p-8 rounded-[2.5rem] border border-main-100 shadow-sm">
                 <div className="flex items-center gap-5">
                     <img className="w-20 md:w-28" src="/icons/bambooflow_logo.svg" alt="Logo BambooFlow" />
@@ -225,8 +194,6 @@ export const TaskHome = () => {
                         </p>
                     </div>
                 </div>
-
-                {/* Bouton visible pour TOUS — admin et user */}
                 <button
                     onClick={() => { setShowAddForm(v => !v); setFormError(null); }}
                     className={`btn flex items-center gap-2 ${showAddForm ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : ''}`}
@@ -236,14 +203,12 @@ export const TaskHome = () => {
                 </button>
             </section>
 
-            {/* ── Erreur globale ──────────────────────────────────────── */}
             {globalError && (
                 <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-4 text-sm font-medium flex items-center gap-2">
                     ⚠️ {globalError}
                 </div>
             )}
 
-            {/* ── Formulaire ajout ────────────────────────────────────── */}
             {showAddForm && (
                 <div>
                     {formError && (
@@ -251,7 +216,6 @@ export const TaskHome = () => {
                             {formError}
                         </div>
                     )}
-                    {/* On passe userRole pour adapter le formulaire */}
                     <TaskAddForm
                         users={allUsers}
                         categories={categories}
@@ -261,12 +225,7 @@ export const TaskHome = () => {
                 </div>
             )}
 
-            {/* ── Layout principal ─────────────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* Sidebar membres
-                    allUsers vient de ce composant et est passé en props.
-                    taskCounts contient le nb de tâches par userId. */}
                 <aside className="lg:col-span-1 bento-card h-fit">
                     <h2 className="text-xl font-bold text-main-800 mb-5 flex items-center gap-2">
                         <Leaf className="text-main-500" size={20} />
@@ -282,28 +241,20 @@ export const TaskHome = () => {
                     />
                 </aside>
 
-                {/* Mes pousses */}
                 <section className="lg:col-span-2">
                     <div className="bg-white rounded-[2rem] border-2 border-main-200 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-chewy text-main-800">
-                                Mes pousses
-                            </h2>
+                            <h2 className="text-2xl font-chewy text-main-800">Mes pousses</h2>
                             <span className="bg-main-100 text-main-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                                 {myTasks.filter(t => !t.isDone).length} en cours
                             </span>
                         </div>
-
                         {isLoadingMyTasks ? (
-                            <p className="text-center text-main-400 animate-pulse py-10">
-                                Chargement de vos pousses...
-                            </p>
+                            <p className="text-center text-main-400 animate-pulse py-10">Chargement de vos pousses...</p>
                         ) : myTasks.length === 0 ? (
                             <div className="text-center py-12 text-main-400 italic">
                                 <p>Aucune pousse pour l'instant. 🌱</p>
-                                <p className="text-sm mt-1 text-main-300">
-                                    Cliquez sur "Planter une pousse" pour commencer !
-                                </p>
+                                <p className="text-sm mt-1 text-main-300">Cliquez sur "Planter une pousse" pour commencer !</p>
                             </div>
                         ) : (
                             <TaskList
@@ -319,7 +270,6 @@ export const TaskHome = () => {
                 </section>
             </div>
 
-            {/* ── Panneau latéral membre sélectionné ──────────────────── */}
             <MemberPanel
                 user={panelUser}
                 tasks={panelTasks}
