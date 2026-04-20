@@ -69,6 +69,7 @@ export const Header = () => {
                     <NavLink to="/" onClick={() => setIsOpen(false)} className={navLinkClass}><Home size={18}/> Accueil</NavLink>
                     <NavLink to="/tasks" onClick={() => setIsOpen(false)} className={navLinkClass}><CheckSquare size={18}/> Tâches</NavLink>
                     <NavLink to="/pomodoro" onClick={() => setIsOpen(false)} className={navLinkClass}><Timer size={18}/> Pomodoro</NavLink>
+                    <NavLink to="/faq" onClick={() => setIsOpen(false)} className={navLinkClass}><HelpCircle size={18}/> FAQ</NavLink>
                     <hr className="my-2 border-main-100" />
                     {!isConnect ? (
                         <div className="flex flex-col gap-3">
