@@ -4,7 +4,12 @@ import { tokenAtom } from "../atoms/auth.atom";
 
 const taskService = {
 
-    getByUserId: async (userId) => {
+    /**
+     * Récupère les tâches de l'utilisateur connecté.
+     * Protégé côté backend par userAuthorizationMiddleware.
+     * NE PAS appeler avec l'id d'un autre user — provoquera un 403.
+     */
+    getMyTasks: async (userId) => {
         const token = getDefaultStore().get(tokenAtom);
         const response = await axios.get(`http://localhost:3000/api/tasks/user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -14,6 +19,19 @@ const taskService = {
             return data[0] || { tasksToDo: [], tasksGiven: [] };
         }
         return data || { tasksToDo: [], tasksGiven: [] };
+    },
+
+    /**
+     * Récupère les tâches publiques d'un autre membre (lecture seule).
+     * Accessible à tous les users connectés sans restriction 403.
+     */
+    getPublicUserTasks: async (userId) => {
+        const token = getDefaultStore().get(tokenAtom);
+        const response = await axios.get(`http://localhost:3000/api/tasks/user/${userId}/tasks`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = response.data;
+        return data || { tasksToDo: [] };
     },
 
     getById: async (taskId) => {
