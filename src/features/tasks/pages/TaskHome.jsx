@@ -25,12 +25,15 @@ export const TaskHome = () => {
     const [isInitLoading, setIsInitLoading] = useState(true);
 
     // ── Tâches du user connecté ───────────────────────────────────────────
-    // On fusionne tasksToDo + tasksGiven pour les grouper via TaskList groupBy
     const [myTasks, setMyTasks] = useState([]);
     const [isLoadingMyTasks, setIsLoadingMyTasks] = useState(false);
 
+    // ── Compteur de tâches par user (pour les badges dans la sidebar) ─────
+    // { [userId]: number }
+    const [taskCounts, setTaskCounts] = useState({});
+
     // ── Panneau membre sélectionné ────────────────────────────────────────
-    const [panelUser, setPanelUser] = useState(null);      // user affiché dans le panneau
+    const [panelUser, setPanelUser] = useState(null);
     const [panelTasks, setPanelTasks] = useState([]);
     const [isPanelLoading, setIsPanelLoading] = useState(false);
 
@@ -40,8 +43,6 @@ export const TaskHome = () => {
 
     // ─────────────────────────────────────────────────────────────────────
     // CHARGEMENT INITIAL : users + categories (une seule fois)
-    // allUsers est ensuite passé en props à TaskUserSelector — c'est ici
-    // qu'il est défini, pas dans le composant enfant.
     // ─────────────────────────────────────────────────────────────────────
     useEffect(() => {
         const init = async () => {
@@ -65,14 +66,14 @@ export const TaskHome = () => {
 
     // ─────────────────────────────────────────────────────────────────────
     // TÂCHES DU USER CONNECTÉ
-    // On charge tasksToDo + tasksGiven et on les fusionne pour le groupBy.
+    // Utilise getMyTasks (route protégée /user/:id) — uniquement pour soi-même.
     // ─────────────────────────────────────────────────────────────────────
     const loadMyTasks = useCallback(async () => {
         if (!connectedUserId) return;
         setIsLoadingMyTasks(true);
         try {
-            const { tasksToDo = [], tasksGiven = [] } = await taskService.getByUserId(connectedUserId);
-            // Fusion avec dédoublonnage par _id (une tâche peut être dans les deux si je me l'assigne à moi-même)
+            const { tasksToDo = [], tasksGiven = [] } = await taskService.getMyTasks(connectedUserId);
+            // Fusion avec dédoublonnage par _id
             const seen = new Set();
             const merged = [...tasksToDo, ...tasksGiven].filter(t => {
                 if (seen.has(t._id)) return false;
@@ -80,6 +81,12 @@ export const TaskHome = () => {
                 return true;
             });
             setMyTasks(merged);
+
+            // Met à jour le compteur pour le user connecté
+            setTaskCounts(prev => ({
+                ...prev,
+                [connectedUserId]: tasksToDo.filter(t => !t.isDone).length
+            }));
         } catch (err) {
             console.error('Erreur chargement mes tâches:', err);
         } finally {
@@ -93,14 +100,22 @@ export const TaskHome = () => {
 
     // ─────────────────────────────────────────────────────────────────────
     // SÉLECTIONNER UN MEMBRE → ouvre le panneau latéral
+    // Utilise getPublicUserTasks (route publique /user/:id/tasks) — sans 403.
     // ─────────────────────────────────────────────────────────────────────
     const handleUserSelect = useCallback(async (user) => {
         setPanelUser(user);
         setPanelTasks([]);
         setIsPanelLoading(true);
         try {
-            const { tasksToDo = [] } = await taskService.getByUserId(user._id);
+            // ✅ getPublicUserTasks ne provoque pas de 403 pour les autres users
+            const { tasksToDo = [] } = await taskService.getPublicUserTasks(user._id);
             setPanelTasks(tasksToDo);
+
+            // Met à jour le compteur pour ce membre
+            setTaskCounts(prev => ({
+                ...prev,
+                [user._id]: tasksToDo.filter(t => !t.isDone).length
+            }));
         } catch (err) {
             console.error('Erreur tâches membre:', err);
         } finally {
@@ -114,7 +129,9 @@ export const TaskHome = () => {
     }, []);
 
     // ─────────────────────────────────────────────────────────────────────
-    // AJOUTER UNE TÂCHE (admin seulement)
+    // AJOUTER UNE TÂCHE
+    // Admin : peut assigner à n'importe qui
+    // User  : s'assigne la tâche à lui-même automatiquement
     // ─────────────────────────────────────────────────────────────────────
     const handleAddTask = async (formData) => {
         setFormError(null);
@@ -127,7 +144,8 @@ export const TaskHome = () => {
             setFormError('Veuillez choisir une priorité.');
             return;
         }
-        if (!formData.assignedTo) {
+        // Pour un admin, le champ assignedTo est requis
+        if (role === 'Admin' && !formData.assignedTo) {
             setFormError('Veuillez assigner la tâche à un membre.');
             return;
         }
@@ -138,7 +156,8 @@ export const TaskHome = () => {
                 description: formData.description?.trim() || '',
                 before: formData.before || '',
                 categoryId: formData.categoryId,
-                toUserId: formData.assignedTo,
+                // Admin assigne à quelqu'un, user s'assigne à lui-même
+                toUserId: role === 'Admin' ? formData.assignedTo : connectedUserId,
                 fromUserId: connectedUserId,
                 isDone: false,
             });
@@ -164,8 +183,7 @@ export const TaskHome = () => {
 
     // ─────────────────────────────────────────────────────────────────────
     // SUPPRIMER UNE TÂCHE
-    // La vérification des permissions est aussi faite dans TaskItem,
-    // mais on la revalide ici avant l'appel API.
+    // Revalide les permissions avant l'appel API.
     // ─────────────────────────────────────────────────────────────────────
     const handleDeleteTask = useCallback(async (taskId) => {
         const task = myTasks.find(t => t._id === taskId);
@@ -207,15 +225,15 @@ export const TaskHome = () => {
                         </p>
                     </div>
                 </div>
-                {role === 'Admin' && (
-                    <button
-                        onClick={() => { setShowAddForm(v => !v); setFormError(null); }}
-                        className={`btn flex items-center gap-2 ${showAddForm ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : ''}`}
-                    >
-                        {showAddForm ? <X size={18} /> : <Plus size={18} />}
-                        {showAddForm ? 'Annuler' : 'Planter une pousse'}
-                    </button>
-                )}
+
+                {/* Bouton visible pour TOUS — admin et user */}
+                <button
+                    onClick={() => { setShowAddForm(v => !v); setFormError(null); }}
+                    className={`btn flex items-center gap-2 ${showAddForm ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : ''}`}
+                >
+                    {showAddForm ? <X size={18} /> : <Plus size={18} />}
+                    {showAddForm ? 'Annuler' : 'Planter une pousse'}
+                </button>
             </section>
 
             {/* ── Erreur globale ──────────────────────────────────────── */}
@@ -226,17 +244,19 @@ export const TaskHome = () => {
             )}
 
             {/* ── Formulaire ajout ────────────────────────────────────── */}
-            {showAddForm && role === 'Admin' && (
+            {showAddForm && (
                 <div>
                     {formError && (
                         <div className="mb-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl p-4 text-sm font-medium">
                             {formError}
                         </div>
                     )}
+                    {/* On passe userRole pour adapter le formulaire */}
                     <TaskAddForm
                         users={allUsers}
                         categories={categories}
                         onAddTask={handleAddTask}
+                        userRole={role}
                     />
                 </div>
             )}
@@ -245,8 +265,8 @@ export const TaskHome = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Sidebar membres
-                    ↓ allUsers est défini dans ce composant (TaskHome)
-                    ↓ et passé ici en props — TaskUserSelector ne fait aucun appel API */}
+                    allUsers vient de ce composant et est passé en props.
+                    taskCounts contient le nb de tâches par userId. */}
                 <aside className="lg:col-span-1 bento-card h-fit">
                     <h2 className="text-xl font-bold text-main-800 mb-5 flex items-center gap-2">
                         <Leaf className="text-main-500" size={20} />
@@ -258,6 +278,7 @@ export const TaskHome = () => {
                         onUserSelected={handleUserSelect}
                         isLoading={isInitLoading}
                         error={globalError}
+                        taskCounts={taskCounts}
                     />
                 </aside>
 
@@ -280,9 +301,9 @@ export const TaskHome = () => {
                         ) : myTasks.length === 0 ? (
                             <div className="text-center py-12 text-main-400 italic">
                                 <p>Aucune pousse pour l'instant. 🌱</p>
-                                {role !== 'Admin' && (
-                                    <p className="text-sm mt-1 text-main-300">Un admin peut vous en assigner une !</p>
-                                )}
+                                <p className="text-sm mt-1 text-main-300">
+                                    Cliquez sur "Planter une pousse" pour commencer !
+                                </p>
                             </div>
                         ) : (
                             <TaskList
