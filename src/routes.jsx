@@ -9,6 +9,7 @@ import { TaskHome } from "./features/tasks/pages/TaskHome";
 import { Home } from "./layout/pages/Home";
 import { NotFound } from "./layout/pages/NotFound";
 import { Pomodoro } from './features/pomodoro/pages/Pomodoro';
+import { Profile } from './layout/pages/Profile';
 
 /**
  * @type { import("react-router").RouteObject}
@@ -20,14 +21,12 @@ export const routes = [
         children: [
             {
                 index: true,
-                /* pour indiquer que c'est l'accueil du path '/' */
                 element: <Home />
             },
             {
                 path: 'tasks',
                 element: <ProtectedPage><TaskHome /></ProtectedPage>
             },
-            // Pour créer une route dynamique
             {
                 path: 'task/:id',
                 element: <ProtectedPage><TaskDetails /></ProtectedPage>
@@ -50,6 +49,10 @@ export const routes = [
                 element: <Pomodoro />
             },
             {
+                path: 'profile',
+                element: <ProtectedPage><Profile /></ProtectedPage>
+            },
+            {
                 path: 'faq',
                 element: <Faq />
             },
@@ -57,11 +60,6 @@ export const routes = [
                 path: 'about',
                 element: <About />
             },
-
-
-
-
-            // Chemin qui signifie "si aucun des chemins définis au dessus" donc attention à toujours le mettre en dernier
             {
                 path: '*',
                 element: <NotFound />
