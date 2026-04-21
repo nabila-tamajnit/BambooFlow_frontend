@@ -1,66 +1,53 @@
-import { NavLink } from "react-router";
-import { Trash2, CheckCircle } from "lucide-react";
-
 /**
- * Props :
- * - task          : objet tâche complet (populé depuis le backend)
- * - connectedUserId : id du user connecté
- * - userRole      : 'Admin' | 'User'
- * - readOnly      : true → aucune action possible (vue d'un autre membre)
- * - onComplete    : callback(taskId) quand on récolte
- * - onDelete      : callback(taskId) quand on supprime
+ * TaskItem.jsx
  *
- * Règles de permissions appliquées ici :
- * - Récolter : si la tâche m'est assignée (toUserId === moi) ET pas encore faite
- * - Supprimer :
- *     • j'ai planté la tâche (fromUserId === moi) → toujours autorisé
- *     • la tâche m'est assignée ET elle est terminée → autorisé
- *     • Admin → toujours autorisé
+ * Permissions selon la nouvelle logique :
+ *   Récolter : assignée à moi ET pas faite, OU admin
+ *   Supprimer : admin, ou j'ai créé, ou c'est assigné à moi
  */
-export const TaskItem = ({ task, connectedUserId, userRole, readOnly = false, onComplete, onDelete }) => {
+
+import { NavLink } from 'react-router';
+import { Trash2, CheckCircle } from 'lucide-react';
+
+export const TaskItem = ({
+    task,
+    connectedUserId,
+    userRole,
+    readOnly = false,
+    onComplete,
+    onDelete,
+}) => {
     const category = task.categoryId;
+    const isAdmin = userRole === 'Admin';
 
     const colorMap = {
-        green: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        yellow: "bg-amber-50 text-amber-700 border-amber-200",
-        red: "bg-red-50 text-red-700 border-red-200",
+        green:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+        yellow: 'bg-amber-50 text-amber-700 border-amber-200',
+        red:    'bg-red-50 text-red-700 border-red-200',
     };
     const activeStyle = colorMap[category?.color] || colorMap.green;
 
     if (!task._id) return null;
 
-    const isAdmin = userRole === 'Admin';
-    // Normalise l'id (populé = objet avec _id, non-populé = string)
-    const toId = task.toUserId?._id ?? task.toUserId;
+    const toId   = task.toUserId?._id   ?? task.toUserId;
     const fromId = task.fromUserId?._id ?? task.fromUserId;
 
-    const isAssignedToMe = toId === connectedUserId;
-    const isPlantedByMe = fromId === connectedUserId;
+    const isAssignedToMe = toId   === connectedUserId;
+    const isCreatedByMe  = fromId === connectedUserId;
 
-    // Peut récolter : tâche assignée à moi, pas encore faite, pas readOnly
-    const canComplete = !readOnly && !task.isDone && isAssignedToMe;
-
-    // Peut supprimer :
-    //   - Admin : toujours
-    //   - J'ai planté cette tâche : toujours
-    //   - La tâche m'est assignée ET elle est terminée
-    const canDelete = !readOnly && (
-        isAdmin ||
-        isPlantedByMe ||
-        (isAssignedToMe && task.isDone)
-    );
+    const canComplete = !readOnly && !task.isDone && (isAssignedToMe || isAdmin);
+    const canDelete   = !readOnly && (isAdmin || isCreatedByMe || isAssignedToMe);
 
     return (
         <div className={`bg-white rounded-[2rem] border border-main-100 shadow-sm transition-all group
             ${task.isDone ? 'opacity-50' : 'hover:shadow-md'}`}>
 
-            {/* Lien vers le détail — toute la carte est cliquable */}
             <NavLink to={`/task/${task._id}`} className="block p-6">
 
-                {/* Badges haut */}
+                {/* Badge catégorie + statut */}
                 <div className="flex justify-between items-start mb-4">
                     <span className={`text-[10px] uppercase font-black px-3 py-1 rounded-full border ${activeStyle}`}>
-                        {category?.priority || 'Normal'}
+                        {category?.name || 'Sans catégorie'} · {category?.priority || 'Normal'}
                     </span>
                     {task.isDone && (
                         <span className="text-[10px] uppercase font-black text-emerald-600 flex items-center gap-1">
@@ -74,21 +61,21 @@ export const TaskItem = ({ task, connectedUserId, userRole, readOnly = false, on
                     {task.name}
                 </h4>
 
-                {/* Description */}
+                {/* Description courte */}
                 {task.description && (
                     <p className="text-sm text-main-400 line-clamp-2 mt-1">
                         {task.description}
                     </p>
                 )}
 
-                {/* Meta */}
+                {/* Meta De / Pour */}
                 <div className="mt-4 flex justify-between items-center text-[10px] text-main-400 font-bold uppercase tracking-wider">
                     <span>De : {task.fromUserId?.firstname || '?'}</span>
                     <span>Pour : {task.toUserId?.firstname || '?'}</span>
                 </div>
             </NavLink>
 
-            {/* Actions — en dehors du NavLink pour éviter la navigation au clic */}
+            {/* Actions hors du NavLink */}
             {(canComplete || canDelete) && (
                 <div className="px-6 pb-5 flex gap-2">
                     {canComplete && onComplete && (

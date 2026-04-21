@@ -1,3 +1,18 @@
+/**
+ * TaskDetails.jsx
+ *
+ * Permissions selon la logique simplifiée :
+ *
+ * Récolter (compléter) :
+ *   - La tâche m'est assignée (toUserId === moi) ET pas encore faite
+ *   - Admin peut toujours compléter
+ *
+ * Supprimer :
+ *   - Admin : toujours
+ *   - User : si la tâche m'est assignée (toUserId === moi)
+ *   - User : si j'ai créé la tâche (fromUserId === moi)
+ */
+
 import { useEffect, useState } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router';
 import { useAtomValue } from 'jotai';
@@ -18,6 +33,7 @@ export const TaskDetails = () => {
     const token = useAtomValue(tokenAtom);
     const role = useAtomValue(roleAtom);
     const connectedUserId = token ? jwtDecode(token).id : null;
+    const isAdmin = role === 'Admin';
 
     const [task, setTask] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +56,7 @@ export const TaskDetails = () => {
             .catch(err => {
                 if (err.response?.status === 404) setError('Cette pousse n\'existe pas.');
                 else if (err.response?.status === 401) setError('Session expirée, reconnectez-vous.');
+                else if (err.response?.status === 403) setError('Vous n\'avez pas accès à cette pousse.');
                 else setError('Impossible de charger cette pousse.');
             })
             .finally(() => setIsLoading(false));
@@ -67,22 +84,18 @@ export const TaskDetails = () => {
         );
     }
 
-    // ── Permissions (calculées APRÈS le chargement de task) ──────────────
-    const isAdmin = role === 'Admin';
+    // ── Permissions (calculées APRÈS le chargement) ───────────────────────
     const toId = task.toUserId?._id ?? task.toUserId;
     const fromId = task.fromUserId?._id ?? task.fromUserId;
 
     const isAssignedToMe = toId === connectedUserId;
-    const isPlantedByMe = fromId === connectedUserId;
+    const isCreatedByMe = fromId === connectedUserId;
 
-    // Peut récolter : assignée à moi ET pas encore faite
-    const canComplete = !task.isDone && isAssignedToMe;
+    // Récolter : assignée à moi OU admin, pas encore faite
+    const canComplete = !task.isDone && (isAssignedToMe || isAdmin);
 
-    // Peut supprimer :
-    //   - Admin toujours
-    //   - J'ai planté la tâche
-    //   - La tâche m'est assignée ET elle est terminée
-    const canDelete = isAdmin || isPlantedByMe || (isAssignedToMe && task.isDone);
+    // Supprimer : admin, ou j'ai créé, ou c'est assigné à moi
+    const canDelete = isAdmin || isCreatedByMe || isAssignedToMe;
 
     const activeStyle = colorMap[task.categoryId?.color] || colorMap.green;
 
@@ -145,11 +158,6 @@ export const TaskDetails = () => {
                                 ✓ Récoltée
                             </span>
                         )}
-                        {!isAssignedToMe && !isAdmin && (
-                            <span className="bg-main-50 text-main-400 border border-main-100 text-[10px] uppercase font-black px-4 py-1.5 rounded-full">
-                                Lecture seule
-                            </span>
-                        )}
                     </div>
 
                     {/* Titre */}
@@ -191,7 +199,9 @@ export const TaskDetails = () => {
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-main-400">Assignée à</p>
                                 <p className="font-bold text-main-800">
-                                    {task.toUserId ? `${task.toUserId.firstname} ${task.toUserId.lastname}` : 'Non assignée'}
+                                    {task.toUserId
+                                        ? `${task.toUserId.firstname} ${task.toUserId.lastname}`
+                                        : 'Non assignée'}
                                 </p>
                             </div>
                         </div>
@@ -202,7 +212,9 @@ export const TaskDetails = () => {
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-main-400">Plantée par</p>
                                 <p className="font-bold text-main-800">
-                                    {task.fromUserId ? `${task.fromUserId.firstname} ${task.fromUserId.lastname}` : 'Inconnu'}
+                                    {task.fromUserId
+                                        ? `${task.fromUserId.firstname} ${task.fromUserId.lastname}`
+                                        : 'Inconnu'}
                                 </p>
                             </div>
                         </div>
@@ -247,12 +259,6 @@ export const TaskDetails = () => {
                             <CheckCircle size={22} />
                             Cette pousse a été récoltée ! 🎋
                         </div>
-                    )}
-
-                    {!isAssignedToMe && !isAdmin && !isPlantedByMe && (
-                        <p className="text-center text-main-400 text-sm italic mt-4">
-                            Vous consultez cette pousse en lecture seule.
-                        </p>
                     )}
                 </div>
             </section>

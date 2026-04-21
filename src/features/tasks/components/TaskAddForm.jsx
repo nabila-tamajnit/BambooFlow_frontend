@@ -1,13 +1,13 @@
+/**
+ * TaskAddForm.jsx
+ *
+ * - User  : le champ "Assigner à" n'existe pas → tâche pour soi-même
+ * - Admin : champ "Assigner à" visible → peut choisir n'importe quel membre
+ */
+
 import { useId } from 'react';
 import { PlusCircle } from 'lucide-react';
 
-/**
- * Props :
- * - users      : liste des users (utilisée uniquement si role === 'Admin')
- * - categories : liste des catégories
- * - onAddTask  : callback(formData)
- * - userRole   : 'Admin' | 'User' — adapte le formulaire
- */
 export function TaskAddForm({ users, categories, onAddTask, userRole = 'User' }) {
     const id = useId();
     const isAdmin = userRole === 'Admin';
@@ -39,7 +39,7 @@ export function TaskAddForm({ users, categories, onAddTask, userRole = 'User' })
 
             <form action={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Nom de la tâche */}
+                {/* Nom */}
                 <div className="md:col-span-2 flex flex-col gap-1.5">
                     <label htmlFor={id + 'title'} className="label-form">Nom de la tâche</label>
                     <input
@@ -74,20 +74,20 @@ export function TaskAddForm({ users, categories, onAddTask, userRole = 'User' })
                     />
                 </div>
 
-                {/* Catégorie / Priorité */}
+                {/* Catégorie */}
                 <div className="flex flex-col gap-1.5">
                     <label htmlFor={id + 'cat'} className="label-form">Priorité</label>
-                    <select name="categoryId" id={id + 'cat'} className="input-form">
+                    <select name="categoryId" id={id + 'cat'} className="input-form" required>
                         <option value="">Choisir une priorité...</option>
                         {Array.isArray(categories) && categories.map(cat => (
                             <option key={cat._id} value={cat._id}>
-                                {cat.name}
+                                {cat.icon} {cat.name}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                {/* Assigner à — visible uniquement pour l'admin */}
+                {/* Assigner à (admin seulement) */}
                 {isAdmin && (
                     <div className="md:col-span-2 flex flex-col gap-1.5">
                         <label htmlFor={id + 'assign'} className="label-form">
@@ -102,12 +102,15 @@ export function TaskAddForm({ users, categories, onAddTask, userRole = 'User' })
                                 </option>
                             ))}
                         </select>
+                        <p className="text-[11px] text-main-400 ml-1">
+                            Laissez vide pour vous assigner la tâche à vous-même.
+                        </p>
                     </div>
                 )}
 
                 <button
                     type="submit"
-                    className="md:col-span-2 btn py-4 text-lg mt-2 flex items-center justify-center gap-2 group"
+                    className="md:col-span-2 btn py-4 text-lg mt-2 flex items-center justify-center gap-2"
                 >
                     Planter la pousse 🎋
                 </button>
