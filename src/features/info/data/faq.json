@@ -1,32 +1,52 @@
 [
   {
-    "id": "duck-42-auth",
-    "question": "Pourquoi dois‑je m'authentifier pour accéder aux fonctionnalités avancées de Pro'Duck'Tivity!",
-    "response": "L'authentification permet de sécuriser vos données et d'assurer la communication avec notre API pédagogique."
+    "id": "faq-auth-1",
+    "question": "Pourquoi dois-je me connecter pour accéder à mes tâches ?",
+    "response": "L'authentification protège vos données et garantit que seul vous (et votre admin) pouvez voir et modifier vos tâches. Votre session est sécurisée via un token JWT valable 3 jours."
   },
   {
-    "id": "duck-secure-egg-3",
-    "question": "Mes données sont-elles réellement protégées lorsque je synchronise mes tâches ?",
-    "response": "Oui, elles sont transmises via une API sécurisée et utilisées uniquement dans le cadre de l'apprentissage."
+    "id": "faq-roles-2",
+    "question": "Quelle est la différence entre un Membre et un Admin ?",
+    "response": "Un Membre peut créer ses propres tâches, les consulter, les compléter et les supprimer. Un Admin peut en plus assigner des tâches à n'importe quel membre et gérer toutes les pousses de la forêt."
   },
   {
-    "id": "duck-offline-panic-9",
-    "question": "Puis-je utiliser Pro'Duck'Tivity! si je perds ma connexion Internet en plein milieu d'un Pomodoro ?",
-    "response": "Le minuteur continue localement, mais la synchronisation et certaines fonctionnalités nécessiteront le retour de la connexion."
+    "id": "faq-admin-3",
+    "question": "Comment devenir administrateur ?",
+    "response": "Lors de l'inscription, un champ optionnel 'Code administrateur' est disponible. Si vous entrez le code fourni par votre formateur ou responsable, votre compte sera créé avec les droits Admin."
   },
   {
-    "id": "duck-cosmic-judge-∞",
-    "question": "Si je clique 42 fois sur le bouton 'Ajouter une tâche', est-ce que le Grand Canard Cosmique apparaît pour me juger ?",
-    "response": "oui"
+    "id": "faq-tasks-4",
+    "question": "Puis-je voir les tâches des autres membres ?",
+    "response": "Oui, en cliquant sur un membre dans la liste, un panneau latéral s'ouvre avec ses tâches en lecture seule. Vous ne pouvez pas les modifier — seulement les consulter."
   },
   {
-    "id": "duck-api-chaos-7",
-    "question": "Que faire si l'API refuse soudainement de répondre alors que tout fonctionnait hier ?",
-    "response": "Dans un contexte pédagogique, cela arrive parfois. Vérifiez votre connexion, vos identifiants et contactez votre formateur si le problème persiste."
+    "id": "faq-delete-5",
+    "question": "Quand puis-je supprimer une tâche ?",
+    "response": "Vous pouvez supprimer une tâche si c'est vous qui l'avez créée, ou si elle vous a été assignée et qu'elle est déjà terminée. Un Admin peut supprimer n'importe quelle tâche."
   },
   {
-    "id": "duck-boss-mode-666",
-    "question": "Pourquoi un canard en costard-cravate me fixe-t-il intensément lorsque je dépasse mon temps de pause ?",
-    "response": "C'est une fonctionnalité expérimentale destinée à encourager la discipline. Ou la peur. On hésite encore."
+    "id": "faq-pomodoro-6",
+    "question": "Comment fonctionne le Pomodoro ?",
+    "response": "La technique Pomodoro consiste à travailler 25 minutes sans interruption (une 'session Focus'), puis à prendre 5 minutes de pause. Après 4 sessions, vous méritez une grande pause de 15 minutes. BambooFlow vous guide automatiquement entre les phases."
+  },
+  {
+    "id": "faq-pomodoro-7",
+    "question": "Le timer Pomodoro continue-t-il si je change de page ?",
+    "response": "Le timer tourne en local dans votre navigateur. Si vous naviguez vers une autre page de l'app, il continue. En revanche, si vous fermez l'onglet ou rechargez la page, le timer repart de zéro."
+  },
+  {
+    "id": "faq-account-8",
+    "question": "Comment supprimer mon compte ?",
+    "response": "Accédez à la page 'Mon profil' via l'icône en haut à droite. En bas de page se trouve la 'Zone dangereuse' avec le bouton de suppression. Une confirmation vous sera demandée — la suppression est définitive et irréversible."
+  },
+  {
+    "id": "faq-offline-9",
+    "question": "Que se passe-t-il si je perds ma connexion Internet ?",
+    "response": "Le timer Pomodoro continue de fonctionner localement. En revanche, les actions sur les tâches (créer, compléter, supprimer) nécessitent une connexion au serveur et échoueront sans accès réseau."
+  },
+  {
+    "id": "faq-duck-10",
+    "question": "Si je clique 42 fois sur le bouton 'Planter une pousse', est-ce que le Grand Panda Cosmique apparaît pour me juger ?",
+    "response": "Oui."
   }
 ]
