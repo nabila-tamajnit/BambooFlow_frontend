@@ -60,7 +60,7 @@ export const TaskItem = ({ task, connectedUserId, userRole, readOnly = false, on
                 {/* Badges haut */}
                 <div className="flex justify-between items-start mb-4">
                     <span className={`text-[10px] uppercase font-black px-3 py-1 rounded-full border ${activeStyle}`}>
-                        {category?.name || 'Sans catégorie'} · {category?.priority || 'Normal'}
+                        {category?.priority || 'Normal'}
                     </span>
                     {task.isDone && (
                         <span className="text-[10px] uppercase font-black text-emerald-600 flex items-center gap-1">
