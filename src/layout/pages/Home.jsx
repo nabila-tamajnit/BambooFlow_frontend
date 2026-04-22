@@ -59,7 +59,7 @@ export const Home = () => {
                     <div className="absolute inset-0 bg-main-400 blur-[100px] opacity-20 rounded-full"></div>
                     <img
                         className="relative w-48 lg:w-64 drop-shadow-2xl animate-float"
-                        src="/icons/bambooflow_logo.svg"
+                        src="/images/panda_welcome.svg"
                         alt="Panda BambooFlow"
                     />
                 </div>
