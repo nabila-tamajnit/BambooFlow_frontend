@@ -1,159 +1,96 @@
-/**
- * TaskList.jsx
- *
- * Modes d'affichage :
- *   - groupBy=true  : sections visuelles distinctes (mon dashboard)
- *   - groupBy=false : grille plate (vue filtrée admin par membre)
- */
-
+// src/features/tasks/components/TaskList.jsx
 import { TaskItem } from './TaskItem';
-import { Sprout, Sparkles, CheckCircle2, Send } from 'lucide-react';
+import { Flame, Zap, Leaf, CheckCircle2 } from 'lucide-react';
 
-export const TaskList = ({
-    tasks = [],
-    connectedUserId,
-    userRole,
-    readOnly = false,
-    onComplete,
-    onDelete,
-    groupBy = false,
-}) => {
-    const isAdmin = userRole === 'Admin';
+const SECTIONS = [
+    {
+        key: 'high',
+        label: 'Urgent',
+        icon: Flame,
+        colorClass: 'text-red-500',
+        bgClass: 'bg-red-50 border-red-200',
+        emptyMsg: null,
+    },
+    {
+        key: 'medium',
+        label: 'Priorité moyenne',
+        icon: Zap,
+        colorClass: 'text-amber-500',
+        bgClass: 'bg-amber-50 border-amber-200',
+        emptyMsg: null,
+    },
+    {
+        key: 'low',
+        label: 'Faible priorité',
+        icon: Leaf,
+        colorClass: 'text-emerald-500',
+        bgClass: 'bg-emerald-50 border-emerald-200',
+        emptyMsg: null,
+    },
+];
 
-    // Normalise les tâches : accepte un tableau plat ou un objet { tasksToDo, tasksGiven }
-    const cleanTasks = Array.isArray(tasks)
-        ? tasks
-        : [...(tasks?.tasksToDo || []), ...(tasks?.tasksGiven || [])];
-
-    if (cleanTasks.length === 0) {
+export const TaskList = ({ tasks = [], onComplete, onDelete, onEdit }) => {
+    if (tasks.length === 0) {
         return (
-            <div className="p-10 text-center text-main-400 italic">
-                Aucune pousse trouvée. 🌱
+            <div className="p-12 text-center text-main-400 italic">
+                <p className="text-lg">Aucune pousse pour le moment. 🌱</p>
+                <p className="text-sm mt-1 text-main-300">Plante ta première tâche !</p>
             </div>
         );
     }
 
-    // ── Mode grille plate (admin vue filtrée par membre) ──────────────────
-    if (!groupBy) {
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {cleanTasks.map(task => (
-                    <TaskItem
-                        key={task._id}
-                        task={task}
-                        connectedUserId={connectedUserId}
-                        userRole={userRole}
-                        readOnly={readOnly}
-                        onComplete={onComplete}
-                        onDelete={onDelete}
-                    />
-                ))}
-            </div>
-        );
-    }
-
-    // ── Mode groupé (dashboard) ───────────────────────────────────────────
-    const done = cleanTasks.filter(t => t.isDone);
-
-    // Tâches assignées par l'admin (quelqu'un d'autre → moi)
-    const assignedByOther = cleanTasks.filter(t => {
-        const fromId = t.fromUserId?._id ?? t.fromUserId;
-        const toId = t.toUserId?._id ?? t.toUserId;
-        return !t.isDone && fromId !== connectedUserId && toId === connectedUserId;
-    });
-
-    // Mes propres tâches (je me les suis assignées moi-même)
-    const myOwnTasks = cleanTasks.filter(t => {
-        const fromId = t.fromUserId?._id ?? t.fromUserId;
-        const toId = t.toUserId?._id ?? t.toUserId;
-        return !t.isDone && fromId === connectedUserId && toId === connectedUserId;
-    });
-
-    // Tâches que j'ai créées pour d'autres (admin essentiellement)
-    const plantedForOthers = cleanTasks.filter(t => {
-        const fromId = t.fromUserId?._id ?? t.fromUserId;
-        const toId = t.toUserId?._id ?? t.toUserId;
-        return !t.isDone && fromId === connectedUserId && toId !== connectedUserId;
-    });
+    const pending = tasks.filter(t => !t.isDone);
+    const done    = tasks.filter(t => t.isDone);
 
     return (
         <div className="space-y-8">
 
-            {/* Assignées par l'admin */}
-            {assignedByOther.length > 0 && (
-                <div className="bg-secondary-50 rounded-2xl p-4 border border-secondary-200">
-                    <h3 className="text-sm font-bold text-secondary-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Sparkles size={14} className="text-secondary-500" />
-                        Assignées par l'admin
-                        <span className="bg-secondary-100 text-secondary-700 text-[10px] px-2 py-0.5 rounded-full ml-1">
-                            {assignedByOther.length}
-                        </span>
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {assignedByOther.map(task => (
-                            <TaskItem key={task._id} task={task}
-                                connectedUserId={connectedUserId} userRole={userRole}
-                                readOnly={readOnly} onComplete={onComplete} onDelete={onDelete} />
-                        ))}
-                    </div>
-                </div>
-            )}
+            {/* Sections par priorité */}
+            {SECTIONS.map(({ key, label, icon: Icon, colorClass, bgClass }) => {
+                const sectionTasks = pending.filter(t => (t.priority || 'medium') === key);
+                if (sectionTasks.length === 0) return null;
 
-            {/* Mes propres tâches */}
-            {myOwnTasks.length > 0 && (
-                <div className="bg-main-50 rounded-2xl p-4 border border-main-200">
-                    <h3 className="text-sm font-bold text-main-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Sprout size={14} className="text-main-500" />
-                        {isAdmin ? 'Mes pousses' : 'Mes propres tâches'}
-                        <span className="bg-main-100 text-main-600 text-[10px] px-2 py-0.5 rounded-full ml-1">
-                            {myOwnTasks.length}
-                        </span>
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {myOwnTasks.map(task => (
-                            <TaskItem key={task._id} task={task}
-                                connectedUserId={connectedUserId} userRole={userRole}
-                                readOnly={readOnly} onComplete={onComplete} onDelete={onDelete} />
-                        ))}
+                return (
+                    <div key={key} className={`rounded-2xl p-4 border ${bgClass}`}>
+                        <h3 className={`text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2 ${colorClass}`}>
+                            <Icon size={14} />
+                            {label}
+                            <span className="bg-white/70 text-current text-[10px] px-2 py-0.5 rounded-full ml-1 font-bold">
+                                {sectionTasks.length}
+                            </span>
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {sectionTasks.map(task => (
+                                <TaskItem
+                                    key={task._id}
+                                    task={task}
+                                    onComplete={onComplete}
+                                    onDelete={onDelete}
+                                    onEdit={onEdit}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })}
 
-            {/* Plantées pour d'autres (admin seulement en pratique) */}
-            {plantedForOthers.length > 0 && (
-                <div className="bg-main-50/50 rounded-2xl p-4 border border-main-100">
-                    <h3 className="text-sm font-bold text-main-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Send size={14} className="text-main-400" />
-                        Plantées pour d'autres
-                        <span className="bg-main-100 text-main-500 text-[10px] px-2 py-0.5 rounded-full ml-1">
-                            {plantedForOthers.length}
-                        </span>
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {plantedForOthers.map(task => (
-                            <TaskItem key={task._id} task={task}
-                                connectedUserId={connectedUserId} userRole={userRole}
-                                readOnly={readOnly} onComplete={onComplete} onDelete={onDelete} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Terminées */}
+            {/* Tâches terminées */}
             {done.length > 0 && (
                 <div className="opacity-60">
                     <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <CheckCircle2 size={14} className="text-emerald-500" />
-                        Récoltées
+                        <CheckCircle2 size={14} />
+                        Terminées
                         <span className="bg-emerald-50 text-emerald-600 text-[10px] px-2 py-0.5 rounded-full border border-emerald-200 ml-1">
                             {done.length}
                         </span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {done.map(task => (
-                            <TaskItem key={task._id} task={task}
-                                connectedUserId={connectedUserId} userRole={userRole}
-                                readOnly={readOnly} onComplete={onComplete} onDelete={onDelete} />
+                            <TaskItem
+                                key={task._id}
+                                task={task}
+                                onDelete={onDelete}
+                            />
                         ))}
                     </div>
                 </div>
