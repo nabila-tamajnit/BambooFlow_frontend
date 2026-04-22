@@ -1,17 +1,37 @@
 // src/features/tasks/components/TaskAddForm.jsx
 import { useId, useState } from 'react';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, Plus, Tag } from 'lucide-react';
+import categoryService from '../../../services/category.service';
 
-/**
- * Formulaire d'ajout ET d'édition d'une tâche personnelle.
- * - mode "add"  : création
- * - mode "edit" : modification (taskToEdit fourni)
- *
- * Plus de logique admin, plus d'assignation.
- */
-export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit = null, onCancel }) {
+export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit = null, onCancel, onCategoryCreated }) {
     const id = useId();
     const isEditing = !!taskToEdit;
+
+    // Mini-formulaire catégorie inline
+    const [showQuickCat, setShowQuickCat] = useState(false);
+    const [quickCatName, setQuickCatName] = useState('');
+    const [quickCatIcon, setQuickCatIcon] = useState('📋');
+    const [quickCatLoading, setQuickCatLoading] = useState(false);
+    const [quickCatError, setQuickCatError] = useState(null);
+    const [newCatId, setNewCatId] = useState(null); // pour présélectionner la nouvelle cat
+
+    const handleCreateQuickCat = async () => {
+        if (!quickCatName.trim()) { setQuickCatError('Nom obligatoire'); return; }
+        setQuickCatLoading(true);
+        setQuickCatError(null);
+        try {
+            const created = await categoryService.create({ name: quickCatName.trim(), icon: quickCatIcon });
+            onCategoryCreated?.(created);
+            setNewCatId(created._id);
+            setShowQuickCat(false);
+            setQuickCatName('');
+            setQuickCatIcon('📋');
+        } catch (err) {
+            setQuickCatError(err.response?.data?.message || 'Erreur');
+        } finally {
+            setQuickCatLoading(false);
+        }
+    };
 
     const handleSubmit = async (formData) => {
         const data = Object.fromEntries(formData.entries());
@@ -21,6 +41,11 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
             onAddTask(data);
         }
     };
+
+    // Catégorie présélectionnée : celle en cours d'édition OU la nouvelle créée
+    const defaultCatId = newCatId || taskToEdit?.categoryId?._id || '';
+
+    const QUICK_ICONS = ['📋', '💼', '🏠', '🎯', '📚', '💡', '🛒', '❤️', '🎨', '⚙️'];
 
     return (
         <section className="bg-white rounded-[2.5rem] p-8 border border-main-100 shadow-xl relative overflow-hidden">
@@ -92,31 +117,96 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                 {/* Priorité */}
                 <div className="flex flex-col gap-1.5">
                     <label htmlFor={id + 'priority'} className="label-form">Priorité</label>
-                    <select name="priority" id={id + 'priority'} className="input-form">
-                        <option value="high"   defaultValue={taskToEdit?.priority === 'high'}>🔥 Haute</option>
-                        <option value="medium" defaultValue={taskToEdit?.priority === 'medium'}>⚡ Moyenne</option>
-                        <option value="low"    defaultValue={taskToEdit?.priority === 'low'}>🌿 Faible</option>
+                    <select
+                        name="priority"
+                        id={id + 'priority'}
+                        className="input-form"
+                        defaultValue={taskToEdit?.priority || 'medium'}
+                    >
+                        <option value="high">🔥 Haute — urgent</option>
+                        <option value="medium">⚡ Moyenne</option>
+                        <option value="low">🌿 Faible</option>
                     </select>
                 </div>
 
-                {/* Catégorie (optionnelle) */}
-                {categories.length > 0 && (
-                    <div className="md:col-span-2 flex flex-col gap-1.5">
-                        <label htmlFor={id + 'cat'} className="label-form">Catégorie (optionnelle)</label>
-                        <select name="categoryId" id={id + 'cat'} className="input-form">
-                            <option value="">Sans catégorie</option>
-                            {categories.map(cat => (
-                                <option
-                                    key={cat._id}
-                                    value={cat._id}
-                                    selected={taskToEdit?.categoryId?._id === cat._id}
-                                >
-                                    {cat.icon} {cat.name}
-                                </option>
-                            ))}
-                        </select>
+                {/* Catégorie + création rapide */}
+                <div className="md:col-span-2 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                        <label htmlFor={id + 'cat'} className="label-form mb-0">Catégorie (optionnelle)</label>
+                        <button
+                            type="button"
+                            onClick={() => setShowQuickCat(v => !v)}
+                            className="text-xs font-bold text-main-500 hover:text-main-700 flex items-center gap-1 transition-colors"
+                        >
+                            <Plus size={12} />
+                            {showQuickCat ? 'Annuler' : 'Nouvelle catégorie'}
+                        </button>
                     </div>
-                )}
+
+                    {/* Sélecteur catégorie */}
+                    <select
+                        name="categoryId"
+                        id={id + 'cat'}
+                        className="input-form"
+                        value={defaultCatId}
+                        onChange={() => {}} // contrôlé par defaultCatId
+                        key={defaultCatId} // force re-render si nouvelle cat
+                        defaultValue={defaultCatId}
+                    >
+                        <option value="">Sans catégorie</option>
+                        {categories.map(cat => (
+                            <option key={cat._id} value={cat._id}>
+                                {cat.icon} {cat.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Mini-formulaire création rapide */}
+                    {showQuickCat && (
+                        <div className="bg-main-50 rounded-2xl p-4 border border-main-200 space-y-3">
+                            <p className="text-xs font-bold text-main-500 flex items-center gap-1.5">
+                                <Tag size={12} />
+                                Créer une nouvelle catégorie
+                            </p>
+
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Nom de la catégorie..."
+                                    value={quickCatName}
+                                    onChange={e => setQuickCatName(e.target.value)}
+                                    className="input-form flex-1 py-2 text-sm"
+                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleCreateQuickCat())}
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap gap-1.5">
+                                {QUICK_ICONS.map(ico => (
+                                    <button
+                                        key={ico}
+                                        type="button"
+                                        onClick={() => setQuickCatIcon(ico)}
+                                        className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all
+                                            ${quickCatIcon === ico ? 'bg-main-200 ring-2 ring-main-500' : 'bg-white hover:bg-main-100'}`}
+                                    >
+                                        {ico}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {quickCatError && <p className="text-red-500 text-xs">{quickCatError}</p>}
+
+                            <button
+                                type="button"
+                                onClick={handleCreateQuickCat}
+                                disabled={quickCatLoading}
+                                className="btn py-2 text-sm w-full disabled:opacity-60"
+                            >
+                                {quickCatLoading ? '...' : `Créer "${quickCatName || '...'}"`}
+                            </button>
+                        </div>
+                    )}
+                </div>
 
                 {/* Submit */}
                 <div className="md:col-span-2 flex gap-3">
@@ -130,21 +220,6 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                         </button>
                     )}
                 </div>
-
-                {/* ADMIN désactivé — conservé pour future évolution (assignation à un membre) */}
-                {/* {isAdmin && (
-                    <div className="md:col-span-2 flex flex-col gap-1.5">
-                        <label htmlFor={id + 'assign'} className="label-form">Assigner à</label>
-                        <select name="assignedTo" id={id + 'assign'} className="input-form">
-                            <option value="">Choisir un membre...</option>
-                            {users.map(user => (
-                                <option key={user._id} value={user._id}>
-                                    {user.firstname} {user.lastname}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )} */}
             </form>
         </section>
     );

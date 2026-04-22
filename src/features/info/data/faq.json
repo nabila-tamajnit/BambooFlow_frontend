@@ -1,52 +1,58 @@
+
 [
   {
     "id": "faq-auth-1",
     "question": "Pourquoi dois-je me connecter pour accéder à mes tâches ?",
-    "response": "L'authentification protège vos données et garantit que seul vous (et votre admin) pouvez voir et modifier vos tâches. Votre session est sécurisée via un token JWT valable 3 jours."
+    "response": "L'authentification protège tes données et garantit que seul toi peut voir et modifier tes tâches. Ta session est sécurisée via un token JWT valable 3 jours."
   },
   {
-    "id": "faq-roles-2",
-    "question": "Quelle est la différence entre un Membre et un Admin ?",
-    "response": "Un Membre peut créer ses propres tâches, les consulter, les compléter et les supprimer. Un Admin peut en plus assigner des tâches à n'importe quel membre et gérer toutes les pousses de la forêt."
+    "id": "faq-tasks-2",
+    "question": "Comment créer une nouvelle tâche ?",
+    "response": "Sur ta dashboard, clique sur 'Planter une pousse'. Tu peux lui donner un nom, une description, une date limite, une priorité et une catégorie."
   },
   {
-    "id": "faq-admin-3",
-    "question": "Comment devenir administrateur ?",
-    "response": "Lors de l'inscription, un champ optionnel 'Code administrateur' est disponible. Si vous entrez le code fourni par votre formateur ou responsable, votre compte sera créé avec les droits Admin."
+    "id": "faq-priority-3",
+    "question": "Quelle est la différence entre les niveaux de priorité ?",
+    "response": "🔥 Urgente : à traiter immédiatement. ⚡ Moyenne : important mais pas critique. 🌿 Faible : à faire quand tu as le temps. Les tâches sont triées par priorité dans ta dashboard."
   },
   {
-    "id": "faq-tasks-4",
-    "question": "Puis-je voir les tâches des autres membres ?",
-    "response": "Oui, en cliquant sur un membre dans la liste, un panneau latéral s'ouvre avec ses tâches en lecture seule. Vous ne pouvez pas les modifier — seulement les consulter."
+    "id": "faq-categories-4",
+    "question": "Comment gérer mes catégories ?",
+    "response": "Dans la sidebar gauche de ta dashboard, tu peux créer, modifier et supprimer tes propres catégories. Chaque catégorie a un nom, une icône et une couleur. Tu peux aussi créer une catégorie directement depuis le formulaire d'ajout de tâche."
   },
   {
-    "id": "faq-delete-5",
-    "question": "Quand puis-je supprimer une tâche ?",
-    "response": "Vous pouvez supprimer une tâche si c'est vous qui l'avez créée, ou si elle vous a été assignée et qu'elle est déjà terminée. Un Admin peut supprimer n'importe quelle tâche."
+    "id": "faq-filter-5",
+    "question": "Comment filtrer mes tâches par catégorie ?",
+    "response": "Clique sur une catégorie dans la sidebar gauche. La dashboard affiche alors uniquement les tâches de cette catégorie, tout en conservant le tri par priorité. Pour revenir à toutes les tâches, clique sur 'Toutes les tâches'."
   },
   {
-    "id": "faq-pomodoro-6",
+    "id": "faq-edit-6",
+    "question": "Puis-je modifier une tâche après l'avoir créée ?",
+    "response": "Oui ! Sur chaque tâche, le bouton crayon ouvre le formulaire d'édition. Tu peux modifier le titre, la description, la catégorie, la priorité et la date limite. Une tâche terminée ne peut plus être modifiée."
+  },
+  {
+    "id": "faq-done-7",
+    "question": "Que se passe-t-il quand je termine une tâche ?",
+    "response": "La tâche passe dans la section 'Terminées' en bas de ta dashboard. Elle y reste visible jusqu'à ce que tu la supprimes. Tu ne peux plus la modifier, mais tu peux toujours la supprimer."
+  },
+  {
+    "id": "faq-pomodoro-8",
     "question": "Comment fonctionne le Pomodoro ?",
-    "response": "La technique Pomodoro consiste à travailler 25 minutes sans interruption (une 'session Focus'), puis à prendre 5 minutes de pause. Après 4 sessions, vous méritez une grande pause de 15 minutes. BambooFlow vous guide automatiquement entre les phases."
+    "response": "La technique Pomodoro : 25 minutes de travail concentré (Focus), puis 5 minutes de pause. Après 4 sessions, tu mérites une grande pause de 15 minutes. BambooFlow guide automatiquement entre les phases. Le panda t'accompagne selon l'état du timer !"
   },
   {
-    "id": "faq-pomodoro-7",
+    "id": "faq-pomodoro-9",
     "question": "Le timer Pomodoro continue-t-il si je change de page ?",
-    "response": "Le timer tourne en local dans votre navigateur. Si vous naviguez vers une autre page de l'app, il continue. En revanche, si vous fermez l'onglet ou rechargez la page, le timer repart de zéro."
+    "response": "Le timer tourne en local dans ton navigateur. Si tu navigues vers une autre page de l'app, il continue. En revanche, si tu fermes l'onglet ou recharges la page, le timer repart de zéro."
   },
   {
-    "id": "faq-account-8",
+    "id": "faq-account-10",
     "question": "Comment supprimer mon compte ?",
-    "response": "Accédez à la page 'Mon profil' via l'icône en haut à droite. En bas de page se trouve la 'Zone dangereuse' avec le bouton de suppression. Une confirmation vous sera demandée — la suppression est définitive et irréversible."
+    "response": "Va sur 'Mon profil' via l'icône en haut à droite. En bas de page, dans la Zone dangereuse, clique sur le bouton de suppression. Une confirmation te sera demandée — la suppression est définitive et irréversible."
   },
   {
-    "id": "faq-offline-9",
-    "question": "Que se passe-t-il si je perds ma connexion Internet ?",
-    "response": "Le timer Pomodoro continue de fonctionner localement. En revanche, les actions sur les tâches (créer, compléter, supprimer) nécessitent une connexion au serveur et échoueront sans accès réseau."
-  },
-  {
-    "id": "faq-duck-10",
-    "question": "Si je clique 42 fois sur le bouton 'Planter une pousse', est-ce que le Grand Panda Cosmique apparaît pour me juger ?",
+    "id": "faq-panda-11",
+    "question": "Si je plante 42 pousses d'un coup, le Grand Panda Cosmique apparaît-il pour me juger ?",
     "response": "Oui."
   }
 ]
