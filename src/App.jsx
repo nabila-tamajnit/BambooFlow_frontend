@@ -3,19 +3,15 @@ import { Footer } from "./layout/components/Footer"
 import { Header } from "./layout/components/Header"
 
 function App() {
- 
-
-  return (
-    <>
-      <Header />
-
-      <main>
-        <Outlet />
-      </main>
-      
-      <Footer />
-    </>
-  )
+    return (
+        <>
+            <Header />
+            <main className="grow">
+                <Outlet />
+            </main>
+            <Footer />
+        </>
+    )
 }
 
 export default App

@@ -2,18 +2,27 @@
 import { useId, useState } from 'react';
 import { PlusCircle, X, Plus, Tag } from 'lucide-react';
 import categoryService from '../../../services/category.service';
+import { ICON_MAP, ICON_OPTIONS } from '../utils/categoryIcons';
 
-export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit = null, onCancel, onCategoryCreated }) {
+export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit = null, onCancel, onCategoryCreated, preselectedCategoryId = null }) {
     const id = useId();
     const isEditing = !!taskToEdit;
 
-    // Mini-formulaire catégorie inline
+    // ── État du formulaire (controlled) ───────────────────────────────────
+    const [title, setTitle] = useState(taskToEdit?.name || '');
+    const [description, setDescription] = useState(taskToEdit?.description || '');
+    const [before, setBefore] = useState(taskToEdit?.before || '');
+    const [priority, setPriority] = useState(taskToEdit?.priority || 'medium');
+    const [categoryId, setCategoryId] = useState(taskToEdit?.categoryId?._id || taskToEdit?.categoryId || preselectedCategoryId || '');
+
+    // ── Mini-formulaire catégorie inline ──────────────────────────────────
     const [showQuickCat, setShowQuickCat] = useState(false);
     const [quickCatName, setQuickCatName] = useState('');
-    const [quickCatIcon, setQuickCatIcon] = useState('📋');
+    const [quickCatIcon, setQuickCatIcon] = useState('Clipboard');
     const [quickCatLoading, setQuickCatLoading] = useState(false);
     const [quickCatError, setQuickCatError] = useState(null);
-    const [newCatId, setNewCatId] = useState(null); // pour présélectionner la nouvelle cat
+
+    const QUICK_ICONS = ICON_OPTIONS;
 
     const handleCreateQuickCat = async () => {
         if (!quickCatName.trim()) { setQuickCatError('Nom obligatoire'); return; }
@@ -22,10 +31,10 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
         try {
             const created = await categoryService.create({ name: quickCatName.trim(), icon: quickCatIcon });
             onCategoryCreated?.(created);
-            setNewCatId(created._id);
+            setCategoryId(created._id); // ← présélectionne immédiatement
             setShowQuickCat(false);
             setQuickCatName('');
-            setQuickCatIcon('📋');
+            setQuickCatIcon('Clipboard');;
         } catch (err) {
             setQuickCatError(err.response?.data?.message || 'Erreur');
         } finally {
@@ -33,19 +42,15 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
         }
     };
 
-    const handleSubmit = async (formData) => {
-        const data = Object.fromEntries(formData.entries());
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const data = { title, description, before, priority, categoryId };
         if (isEditing) {
             onEditTask(taskToEdit._id, data);
         } else {
             onAddTask(data);
         }
     };
-
-    // Catégorie présélectionnée : celle en cours d'édition OU la nouvelle créée
-    const defaultCatId = newCatId || taskToEdit?.categoryId?._id || '';
-
-    const QUICK_ICONS = ['📋', '💼', '🏠', '🎯', '📚', '💡', '🛒', '❤️', '🎨', '⚙️'];
 
     return (
         <section className="bg-white rounded-[2.5rem] p-8 border border-main-100 shadow-xl relative overflow-hidden">
@@ -68,24 +73,24 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                     </div>
                 </div>
                 {onCancel && (
-                    <button onClick={onCancel} className="p-2 text-main-400 hover:text-main-700 rounded-xl hover:bg-main-50 transition-all">
+                    <button type="button" onClick={onCancel} className="p-2 text-main-400 hover:text-main-700 rounded-xl hover:bg-main-50 transition-all">
                         <X size={20} />
                     </button>
                 )}
             </div>
 
-            <form action={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 {/* Nom */}
                 <div className="md:col-span-2 flex flex-col gap-1.5">
                     <label htmlFor={id + 'title'} className="label-form">Nom de la tâche</label>
                     <input
                         id={id + 'title'}
-                        name="title"
                         type="text"
                         className="input-form"
                         placeholder="Ex : Réviser les hooks React..."
-                        defaultValue={taskToEdit?.name || ''}
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
                         required
                     />
                 </div>
@@ -94,11 +99,11 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                 <div className="md:col-span-2 flex flex-col gap-1.5">
                     <label className="label-form">Description (optionnelle)</label>
                     <textarea
-                        name="description"
                         className="input-form resize-none"
                         rows={3}
                         placeholder="Quelques détails sur cette tâche..."
-                        defaultValue={taskToEdit?.description || ''}
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
                     />
                 </div>
 
@@ -107,10 +112,10 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                     <label htmlFor={id + 'before'} className="label-form">Date limite</label>
                     <input
                         id={id + 'before'}
-                        name="before"
                         type="date"
                         className="input-form"
-                        defaultValue={taskToEdit?.before || ''}
+                        value={before}
+                        onChange={e => setBefore(e.target.value)}
                     />
                 </div>
 
@@ -118,14 +123,14 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                 <div className="flex flex-col gap-1.5">
                     <label htmlFor={id + 'priority'} className="label-form">Priorité</label>
                     <select
-                        name="priority"
                         id={id + 'priority'}
                         className="input-form"
-                        defaultValue={taskToEdit?.priority || 'medium'}
+                        value={priority}
+                        onChange={e => setPriority(e.target.value)}
                     >
-                        <option value="high">🔥 Haute — urgent</option>
-                        <option value="medium">⚡ Moyenne</option>
-                        <option value="low">🌿 Faible</option>
+                        <option value="high">Haute — urgent</option>
+                        <option value="medium">Moyenne</option>
+                        <option value="low">Faible</option>
                     </select>
                 </div>
 
@@ -143,20 +148,17 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                         </button>
                     </div>
 
-                    {/* Sélecteur catégorie */}
+                    {/* Select catégorie — fully controlled */}
                     <select
-                        name="categoryId"
                         id={id + 'cat'}
                         className="input-form"
-                        value={defaultCatId}
-                        onChange={() => {}} // contrôlé par defaultCatId
-                        key={defaultCatId} // force re-render si nouvelle cat
-                        defaultValue={defaultCatId}
+                        value={categoryId}
+                        onChange={e => setCategoryId(e.target.value)}
                     >
                         <option value="">Sans catégorie</option>
                         {categories.map(cat => (
                             <option key={cat._id} value={cat._id}>
-                                {cat.icon} {cat.name}
+                                {cat.name}
                             </option>
                         ))}
                     </select>
@@ -168,34 +170,34 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                                 <Tag size={12} />
                                 Créer une nouvelle catégorie
                             </p>
-
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Nom de la catégorie..."
-                                    value={quickCatName}
-                                    onChange={e => setQuickCatName(e.target.value)}
-                                    className="input-form flex-1 py-2 text-sm"
-                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleCreateQuickCat())}
-                                />
-                            </div>
-
+                            <input
+                                type="text"
+                                placeholder="Nom de la catégorie..."
+                                value={quickCatName}
+                                onChange={e => setQuickCatName(e.target.value)}
+                                className="input-form py-2 text-sm w-full"
+                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleCreateQuickCat())}
+                            />
                             <div className="flex flex-wrap gap-1.5">
-                                {QUICK_ICONS.map(ico => (
-                                    <button
-                                        key={ico}
-                                        type="button"
-                                        onClick={() => setQuickCatIcon(ico)}
-                                        className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all
-                                            ${quickCatIcon === ico ? 'bg-main-200 ring-2 ring-main-500' : 'bg-white hover:bg-main-100'}`}
-                                    >
-                                        {ico}
-                                    </button>
-                                ))}
+                                {QUICK_ICONS.map(iconName => {
+                                    const Icon = ICON_MAP[iconName];
+
+                                    return (
+                                        <button
+                                            key={iconName}
+                                            type="button"
+                                            onClick={() => setQuickCatIcon(iconName)}
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${quickCatIcon === iconName
+                                                    ? 'bg-main-200 ring-2 ring-main-500'
+                                                    : 'bg-white hover:bg-main-100'
+                                                }`}
+                                        >
+                                            {Icon && <Icon size={16} />}
+                                        </button>
+                                    );
+                                })}
                             </div>
-
                             {quickCatError && <p className="text-red-500 text-xs">{quickCatError}</p>}
-
                             <button
                                 type="button"
                                 onClick={handleCreateQuickCat}

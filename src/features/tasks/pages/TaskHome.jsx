@@ -8,32 +8,31 @@ import { CategorySidebar } from '../components/CategorySidebar';
 import { CategoryModal } from '../components/CategoryModal';
 import taskService from '../../../services/task.service';
 import categoryService from '../../../services/category.service';
-import {
-    Plus, X, Sprout, CheckCircle2, Clock,
-    AlertTriangle, LayoutGrid
-} from 'lucide-react';
+import { Plus, X, Sprout, CheckCircle2, Clock, AlertTriangle, LayoutGrid, Flame } from 'lucide-react';
+import { ICON_MAP } from '../utils/categoryIcons';
 
 export const TaskHome = () => {
     const profile = useAtomValue(userProfileAtom);
     const connectedUserName = profile?.firstname || '';
 
     // ── Données ───────────────────────────────────────────────────────────
-    const [tasks,      setTasks]      = useState([]);
+    const [tasks, setTasks] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [isLoading,  setIsLoading]  = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [globalError, setGlobalError] = useState(null);
+    const [preselectedCategoryId, setPreselectedCategoryId] = useState(null);
 
     // ── Filtres ───────────────────────────────────────────────────────────
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
     // ── Formulaire tâche ──────────────────────────────────────────────────
-    const [showForm,   setShowForm]   = useState(false);
+    const [showForm, setShowForm] = useState(false);
     const [taskToEdit, setTaskToEdit] = useState(null);
-    const [formError,  setFormError]  = useState(null);
+    const [formError, setFormError] = useState(null);
 
     // ── Modal catégorie ───────────────────────────────────────────────────
-    const [showCatModal, setShowCatModal]   = useState(false);
-    const [catToEdit,    setCatToEdit]      = useState(null);
+    const [showCatModal, setShowCatModal] = useState(false);
+    const [catToEdit, setCatToEdit] = useState(null);
 
     // ── Chargement initial ────────────────────────────────────────────────
     useEffect(() => {
@@ -74,25 +73,25 @@ export const TaskHome = () => {
     const selectedCategory = categories.find(c => c._id === selectedCategoryId);
 
     // ── Stats ─────────────────────────────────────────────────────────────
-    const pendingCount  = filteredTasks.filter(t => !t.isDone).length;
-    const doneCount     = filteredTasks.filter(t =>  t.isDone).length;
-    const urgentCount   = filteredTasks.filter(t => !t.isDone && t.priority === 'high').length;
-    const overdueCount  = filteredTasks.filter(t =>
+    const pendingCount = filteredTasks.filter(t => !t.isDone).length;
+    const doneCount = filteredTasks.filter(t => t.isDone).length;
+    const urgentCount = filteredTasks.filter(t => !t.isDone && t.priority === 'high').length;
+    const overdueCount = filteredTasks.filter(t =>
         !t.isDone && t.before && new Date(t.before) < new Date()
     ).length;
 
     // ── CRUD Tâches ───────────────────────────────────────────────────────
-    const handleAddTask = async (formData) => {
+
+    const handleAddTask = async (data) => {
         setFormError(null);
-        if (!formData.title?.trim()) { setFormError('Le nom est obligatoire.'); return; }
+        if (!data.title?.trim()) { setFormError('Le nom est obligatoire.'); return; }
         try {
             await taskService.create({
-                name:        formData.title.trim(),
-                description: formData.description?.trim() || '',
-                before:      formData.before || '',
-                priority:    formData.priority || 'medium',
-                categoryId:  formData.categoryId || undefined,
-                isDone:      false,
+                name: data.title.trim(),
+                description: data.description?.trim() || '',
+                before: data.before || '',
+                priority: data.priority || 'medium',
+                categoryId: data.categoryId || undefined,
             });
             setShowForm(false);
             reloadTasks();
@@ -101,15 +100,15 @@ export const TaskHome = () => {
         }
     };
 
-    const handleEditTask = async (taskId, formData) => {
+    const handleEditTask = async (taskId, data) => {
         setFormError(null);
         try {
             await taskService.update(taskId, {
-                name:        formData.title?.trim(),
-                description: formData.description?.trim() || '',
-                before:      formData.before || '',
-                priority:    formData.priority || 'medium',
-                categoryId:  formData.categoryId || undefined,
+                name: data.title?.trim(),
+                description: data.description?.trim() || '',
+                before: data.before || '',
+                priority: data.priority || 'medium',
+                categoryId: data.categoryId || undefined,
             });
             setTaskToEdit(null);
             setShowForm(false);
@@ -141,6 +140,7 @@ export const TaskHome = () => {
         setShowForm(false);
         setTaskToEdit(null);
         setFormError(null);
+        setPreselectedCategoryId(null);
     };
 
     // ── CRUD Catégories ───────────────────────────────────────────────────
@@ -163,6 +163,10 @@ export const TaskHome = () => {
         }
     };
 
+    const CategoryIcon = selectedCategory
+    ? ICON_MAP[selectedCategory.icon]
+    : null;
+
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
 
@@ -178,7 +182,7 @@ export const TaskHome = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => showForm ? handleCloseForm() : setShowForm(true)}
+                    onClick={() => showForm ? handleCloseForm() : (() => { setPreselectedCategoryId(null); setShowForm(true); })()}
                     className={`btn flex items-center gap-2 ${showForm ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : ''}`}
                 >
                     {showForm ? <X size={18} /> : <Plus size={18} />}
@@ -188,15 +192,15 @@ export const TaskHome = () => {
 
             {/* ── Stats ────────────────────────────────────────────────── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <StatCard icon={<Sprout     size={18} className="text-main-500"   />} label="En cours"  value={pendingCount}  color="bg-main-50 border-main-200"     />
-                <StatCard icon={<CheckCircle2 size={18} className="text-emerald-500" />} label="Terminées" value={doneCount}     color="bg-emerald-50 border-emerald-200" />
-                <StatCard icon={<AlertTriangle size={18} className="text-red-500"  />} label="Urgentes"  value={urgentCount}   color="bg-red-50 border-red-200"       />
-                <StatCard icon={<Clock       size={18} className="text-amber-500"  />} label="En retard" value={overdueCount}  color="bg-amber-50 border-amber-200"   />
+                <StatCard icon={<Sprout size={18} className="text-main-500" />} label="En cours" value={pendingCount} color="bg-main-50 border-main-200" />
+                <StatCard icon={<CheckCircle2 size={18} className="text-emerald-500" />} label="Terminées" value={doneCount} color="bg-emerald-50 border-emerald-200" />
+                <StatCard icon={<Flame size={18} className="text-red-500" />} label="Urgentes" value={urgentCount} color="bg-red-50 border-red-200" />
+                <StatCard icon={<Clock size={18} className="text-amber-500" />} label="En retard" value={overdueCount} color="bg-amber-50 border-amber-200" />
             </div>
 
             {globalError && (
                 <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-4 text-sm font-medium">
-                    ⚠️ {globalError}
+                    {<AlertTriangle size={18} className="text-amber-300" />} {globalError}
                 </div>
             )}
 
@@ -213,6 +217,7 @@ export const TaskHome = () => {
                         taskToEdit={taskToEdit}
                         onCancel={handleCloseForm}
                         onCategoryCreated={(cat) => setCategories(prev => [...prev, cat])}
+                        preselectedCategoryId={preselectedCategoryId}
                     />
                 </div>
             )}
@@ -230,12 +235,12 @@ export const TaskHome = () => {
                     onDelete={handleDeleteCat}
                 />
 
-                {/* Liste des tâches */}
+                {/* ── Liste des tâches ─────────────────────────────────────── */}
                 <section className="flex-1 bg-white rounded-[2rem] border-2 border-main-200 shadow-sm p-6 min-w-0">
                     <div className="flex items-center gap-3 mb-6">
                         {selectedCategory ? (
                             <>
-                                <span className="text-2xl">{selectedCategory.icon}</span>
+                                <span className="text-2xl">{CategoryIcon && <CategoryIcon size={22} />}</span>
                                 <h2 className="text-2xl font-chewy text-main-800 flex-1">{selectedCategory.name}</h2>
                             </>
                         ) : (

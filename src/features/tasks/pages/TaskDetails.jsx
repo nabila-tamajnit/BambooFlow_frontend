@@ -4,25 +4,26 @@ import { NavLink, useParams, useNavigate } from 'react-router';
 import taskService from '../../../services/task.service';
 import { TaskAddForm } from '../components/TaskAddForm';
 import categoryService from '../../../services/category.service';
-import { ArrowLeft, Calendar, CheckCircle, Trash2, Pencil } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Trash2, Pencil, Flame, Zap, Leaf } from 'lucide-react';
+import { ICON_MAP } from '../utils/categoryIcons';
 
 const PRIORITY_STYLES = {
-    high:   { label: 'Urgent',  icon: '🔥', badge: 'bg-red-50 text-red-700 border-red-200' },
-    medium: { label: 'Moyen',   icon: '⚡', badge: 'bg-amber-50 text-amber-700 border-amber-200' },
-    low:    { label: 'Faible',  icon: '🌿', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    high: { label: 'Urgent', Icon: Flame, badge: 'bg-red-50 text-red-700 border-red-200' },
+    medium: { label: 'Moyen', Icon: Zap, badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+    low: { label: 'Faible', Icon: Leaf, badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
 };
 
 export const TaskDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const [task, setTask]             = useState(null);
+    const [task, setTask] = useState(null);
     const [categories, setCategories] = useState([]);
-    const [isLoading, setIsLoading]   = useState(true);
-    const [error, setError]           = useState(null);
-    const [isEditing, setIsEditing]   = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
     const [completing, setCompleting] = useState(false);
-    const [deleting, setDeleting]     = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -65,14 +66,14 @@ export const TaskDetails = () => {
         }
     };
 
-    const handleEdit = async (taskId, formData) => {
+    const handleEdit = async (taskId, data) => {
         try {
             const updated = await taskService.update(taskId, {
-                name:        formData.title?.trim(),
-                description: formData.description?.trim() || '',
-                before:      formData.before || '',
-                priority:    formData.priority || 'medium',
-                categoryId:  formData.categoryId || undefined,
+                name: data.title?.trim(),
+                description: data.description?.trim() || '',
+                before: data.before || '',
+                priority: data.priority || 'medium',
+                categoryId: data.categoryId || undefined,
             });
             setTask(updated);
             setIsEditing(false);
@@ -97,6 +98,12 @@ export const TaskDetails = () => {
     );
 
     const p = PRIORITY_STYLES[task.priority] || PRIORITY_STYLES.medium;
+    const { Icon } = p;
+
+    const CategoryIcon = ICON_MAP[task.categoryId.icon] || ICON_MAP.Clipboard;
+    console.log('icon :', task.categoryId.icon);
+    console.log('Priority:', p);
+console.log('Icon:', p.Icon);
 
     return (
         <main className="max-w-3xl mx-auto p-6 lg:p-12">
@@ -118,7 +125,7 @@ export const TaskDetails = () => {
                     {/* Badges */}
                     <div className="flex flex-wrap gap-2 mb-6">
                         <span className={`text-[10px] uppercase font-black px-4 py-1.5 rounded-full border flex items-center gap-1 ${p.badge}`}>
-                            {p.icon} {p.label}
+                            <Icon size={12} /> {p.label}
                         </span>
                         {task.isDone && (
                             <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] uppercase font-black px-4 py-1.5 rounded-full">
@@ -126,8 +133,9 @@ export const TaskDetails = () => {
                             </span>
                         )}
                         {task.categoryId && (
-                            <span className="bg-main-50 text-main-600 border border-main-200 text-[10px] uppercase font-black px-4 py-1.5 rounded-full">
-                                {task.categoryId.icon} {task.categoryId.name}
+                            <span className="bg-main-50 text-main-600 border border-main-200 text-[10px] uppercase font-black px-4 py-1.5 rounded-full inline-flex items-center gap-1">
+                                {CategoryIcon && <CategoryIcon size={12} />}
+                                {task.categoryId.name}
                             </span>
                         )}
                     </div>
