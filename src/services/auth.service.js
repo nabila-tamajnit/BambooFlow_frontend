@@ -15,13 +15,13 @@ const authService = {
 
     login: async ({ email, password }) => {
         const response = await axios.post(`${BASE}/auth/login`, { email, password });
-        const { token, firstname, lastname, id } = response.data;
+        const { token, firstname, lastname, id, role } = response.data;
 
         // Stocker le token
         getDefaultStore().set(tokenAtom, token);
 
         // Stocker le profil de base reçu au login
-        getDefaultStore().set(userProfileAtom, { id, firstname, lastname, email });
+        getDefaultStore().set(userProfileAtom, { id, firstname, lastname, email, role });
 
         return token;
     },
