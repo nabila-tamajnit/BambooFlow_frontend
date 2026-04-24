@@ -45,7 +45,7 @@ export const TaskItem = ({ task, onComplete, onDelete, onEdit, readOnly = false 
             <NavLink to={`/task/${task._id}`} className="block p-5">
 
                 <div className="flex justify-between items-start mb-3">
-                    {/* Badge priorité avec icône Lucide */}
+                    {/* Badge priorité */}
                     <span className={`text-[10px] uppercase font-black px-3 py-1 rounded-full border flex items-center gap-1.5 ${p.badge}`}>
                         <Icon size={10} />
                         {p.label}

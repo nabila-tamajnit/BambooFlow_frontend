@@ -1,15 +1,3 @@
-/**
- * ProtectedPage.jsx
- *
- * Problème précédent : atomWithStorage initialise le token de façon synchrone
- * depuis localStorage, mais lors d'un premier rendu React (surtout en dev avec HMR),
- * isConnectAtom peut retourner false le temps que Jotai lise le storage.
- * Résultat : ProtectedPage redirige vers /login alors que l'utilisateur est connecté.
- *
- * Solution : on lit directement localStorage pour la vérification initiale,
- * PUIS on vérifie l'expiration JWT. Ça évite le flash de redirection.
- */
-
 import { useAtomValue } from 'jotai';
 import { isConnectAtom } from '../../../atoms/auth.atom';
 import { Navigate } from 'react-router';

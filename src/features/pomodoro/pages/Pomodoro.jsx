@@ -6,7 +6,6 @@ import { PomodoroStats } from '../components/PomodoroStats';
 import { PandaDisplay } from '../components/PandaDisplay';
 import { Brain, Coffee, Palmtree } from 'lucide-react';
 
-// Tableau des explications
 const LEGEND = [
     {
         icon: Brain,

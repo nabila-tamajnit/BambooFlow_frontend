@@ -8,14 +8,14 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
     const id = useId();
     const isEditing = !!taskToEdit;
 
-    // ── État du formulaire (controlled) ───────────────────────────────────
+    // ── État du formulaire ───────────────────────────────────
     const [title, setTitle] = useState(taskToEdit?.name || '');
     const [description, setDescription] = useState(taskToEdit?.description || '');
     const [before, setBefore] = useState(taskToEdit?.before || '');
     const [priority, setPriority] = useState(taskToEdit?.priority || 'medium');
     const [categoryId, setCategoryId] = useState(taskToEdit?.categoryId?._id || taskToEdit?.categoryId || preselectedCategoryId || '');
 
-    // ── Mini-formulaire catégorie inline ──────────────────────────────────
+    // ── Mini-formulaire catégorie ──────────────────────────────────
     const [showQuickCat, setShowQuickCat] = useState(false);
     const [quickCatName, setQuickCatName] = useState('');
     const [quickCatIcon, setQuickCatIcon] = useState('Clipboard');
@@ -148,7 +148,7 @@ export function TaskAddForm({ categories = [], onAddTask, onEditTask, taskToEdit
                         </button>
                     </div>
 
-                    {/* Select catégorie — fully controlled */}
+                    {/* Select catégorie */}
                     <select
                         id={id + 'cat'}
                         className="input-form"

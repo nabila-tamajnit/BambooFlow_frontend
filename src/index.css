@@ -2,10 +2,10 @@
 @import './theme.css';
 
 #root {
-    @apply font-poppins min-h-screen flex flex-col bg-main-50; /* Fond doux par défaut */
+    @apply font-poppins min-h-screen flex flex-col bg-main-50;
 }
 
-/* On garde tes boutons mais on les rend plus "Bamboo" */
+/* Boutons */
 .btn {
     @apply bg-main-600 text-white py-2 px-6 rounded-2xl font-medium transition-all duration-200 
            hover:bg-main-700 hover:shadow-lg hover:shadow-main-200 active:scale-95 cursor-pointer;
@@ -16,7 +16,7 @@
     @apply bg-white p-6 rounded-[2rem] border border-main-100 shadow-sm hover:shadow-md transition-shadow duration-300;
 }
 
-/* Style des entrées de texte pour qu'elles soient bien visibles */
+/* Style des entrées de texte */
 .input-form {
     @apply w-full border-2 border-main-100 bg-white rounded-2xl p-3 
            text-main-800 outline-none transition-all duration-200
@@ -27,7 +27,7 @@
     @apply border-main-400 ring-4 ring-main-100;
 }
 
-/* Style des labels pour être pro */
+/* Style des labels */
 .label-form {
     @apply block text-sm font-bold text-main-700 mb-2 ml-1;
 }

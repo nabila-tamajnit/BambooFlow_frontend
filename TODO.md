@@ -334,6 +334,8 @@ Créer ce fichier (panneau latéral affichant les tâches d'un membre) :
 ### 8. src/features/auth/components/RegisterForm.jsx
 Activer le bouton "code administrateur" :
 
+    const ADMIN_SECRET_HINT = "Code fourni par votre formateur";
+
     const [showAdminField, setShowAdminField] = useState(false);
 
 

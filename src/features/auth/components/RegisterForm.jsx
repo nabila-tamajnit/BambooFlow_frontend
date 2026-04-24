@@ -3,10 +3,6 @@ import authService from '../../../services/auth.service';
 import { useNavigate } from 'react-router';
 import { Eye, EyeOff } from "lucide-react";
 
-// Le code secret admin — à mettre dans une variable d'environnement en production
-// Côté front on peut le hardcoder (ce n'est pas sensible — le backend valide aussi)
-const ADMIN_SECRET_HINT = "Code fourni par votre formateur";
-
 export function RegisterForm() {
     const id = useId();
     const navigate = useNavigate();
