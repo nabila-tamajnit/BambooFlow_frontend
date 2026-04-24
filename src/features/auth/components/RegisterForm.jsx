@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import authService from '../../../services/auth.service';
 import { useNavigate } from 'react-router';
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 // Le code secret admin — à mettre dans une variable d'environnement en production
 // Côté front on peut le hardcoder (ce n'est pas sensible — le backend valide aussi)

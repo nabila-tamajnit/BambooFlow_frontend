@@ -21,7 +21,8 @@ export function ProtectedPage({ children }) {
     // Double vérification : Jotai + localStorage direct pour éviter le flash
     // Jotai peut être "pas encore initialisé" lors du premier rendu après refresh
     const rawToken = localStorage.getItem('bamboo_token');
-    const tokenFromStorage = rawToken ? JSON.parse(rawToken) : null; let isValidFromStorage = false;
+    const tokenFromStorage = rawToken ? JSON.parse(rawToken) : null; 
+    let isValidFromStorage = false;
     if (tokenFromStorage) {
         try {
             const { exp } = jwtDecode(tokenFromStorage);
