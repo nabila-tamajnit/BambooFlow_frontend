@@ -11,7 +11,6 @@ export function RegisterForm() {
     const id = useId();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [showAdminField, setShowAdminField] = useState(false);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -87,36 +86,6 @@ export function RegisterForm() {
                     </button>
                 </div>
             </div>
-
-            {/* Toggle code admin */}
-            <button
-                type="button"
-                onClick={() => setShowAdminField(!showAdminField)}
-                className="flex items-center gap-2 text-sm text-main-400 hover:text-main-600 transition-colors self-start"
-            >
-                <ShieldCheck size={16} />
-                {showAdminField ? 'Masquer le code admin' : "J'ai un code administrateur"}
-            </button>
-
-            {/* Champ code admin — masqué par défaut */}
-            {showAdminField && (
-                <div className="flex flex-col gap-1.5">
-                    <label htmlFor={id + 'adminCode'} className="label-form flex items-center gap-2">
-                        <ShieldCheck size={14} className="text-secondary-500" />
-                        Code administrateur
-                    </label>
-                    <input
-                        id={id + 'adminCode'}
-                        type="text"
-                        className="input-form"
-                        name="adminCode"
-                        placeholder={ADMIN_SECRET_HINT}
-                    />
-                    <p className="text-[11px] text-main-400 ml-1">
-                        Laissez vide si vous n'êtes pas administrateur.
-                    </p>
-                </div>
-            )}
 
             <button
                 type="submit"

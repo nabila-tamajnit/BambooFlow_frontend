@@ -2,7 +2,6 @@ import App from "./App";
 import { ProtectedPage } from './features/auth/components/ProtectedPage';
 import { Login } from './features/auth/pages/Login';
 import { Register } from './features/auth/pages/Register';
-import { About } from './features/info/pages/About';
 import { Faq } from './features/info/pages/Faq';
 import { TaskDetails } from "./features/tasks/pages/TaskDetails";
 import { TaskHome } from "./features/tasks/pages/TaskHome";
@@ -55,10 +54,6 @@ export const routes = [
             {
                 path: 'faq',
                 element: <Faq />
-            },
-            {
-                path: 'about',
-                element: <About />
             },
             {
                 path: '*',

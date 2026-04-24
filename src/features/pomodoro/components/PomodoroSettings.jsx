@@ -1,4 +1,4 @@
-import { MODES } from './usePomodoro';
+import { MODES } from '../utils/usePomodoro';
 
 /**
  * Props :

@@ -1,4 +1,4 @@
-import { usePomodoro } from '../components/usePomodoro';
+import { usePomodoro } from '../utils/usePomodoro';
 import { PomodoroTimer } from '../components/PomodoroTimer';
 import { PomodoroControls } from '../components/PomodoroControls';
 import { PomodoroSettings } from '../components/PomodoroSettings';

@@ -66,10 +66,6 @@ export const TaskItem = ({ task, onComplete, onDelete, onEdit, readOnly = false 
                     {task.name}
                 </h4>
 
-                {/* {task.description && (
-                    <p className="text-sm text-main-400 mt-1.5 line-clamp-2">{task.description}</p>
-                )} */}
-
                 {task.categoryId && (
                     <span className="inline-flex items-center gap-1 mt-2 text-[10px] text-main-400 font-medium">
                         {CategoryIcon && <CategoryIcon size={12} />}
