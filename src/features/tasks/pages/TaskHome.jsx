@@ -236,7 +236,7 @@ export const TaskHome = () => {
                 />
 
                 {/* ── Liste des tâches ─────────────────────────────────────── */}
-                <section className="flex-1 bg-white rounded-[2rem] border-2 border-main-200 shadow-sm p-6 min-w-0">
+                <section className="flex-1 w-full bg-white rounded-[2rem] border-2 border-main-200 shadow-sm p-6 min-w-0">
                     <div className="flex items-center gap-3 mb-6">
                         {selectedCategory ? (
                             <>

@@ -3,9 +3,9 @@ import { TaskItem } from './TaskItem';
 import { Flame, Zap, Leaf, CheckCircle2 } from 'lucide-react';
 
 const SECTIONS = [
-    { key: 'high',   label: 'Urgent',           Icon: Flame,       colorClass: 'text-red-600',     bgClass: 'bg-red-50 border-red-200'     },
-    { key: 'medium', label: 'Priorité moyenne',  Icon: Zap,         colorClass: 'text-amber-600',   bgClass: 'bg-amber-50 border-amber-200' },
-    { key: 'low',    label: 'Faible priorité',   Icon: Leaf,        colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-200' },
+    { key: 'high', label: 'Urgent', Icon: Flame, colorClass: 'text-red-600', bgClass: 'bg-red-50 border-red-200' },
+    { key: 'medium', label: 'Priorité moyenne', Icon: Zap, colorClass: 'text-amber-600', bgClass: 'bg-amber-50 border-amber-200' },
+    { key: 'low',    label: 'Faible priorité', Icon: Leaf, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50 border-emerald-200' },
 ];
 
 export const TaskList = ({ tasks = [], onComplete, onDelete, onEdit, readOnly = false }) => {
