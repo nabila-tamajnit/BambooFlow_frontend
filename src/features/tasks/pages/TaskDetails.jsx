@@ -100,10 +100,14 @@ export const TaskDetails = () => {
     const p = PRIORITY_STYLES[task.priority] || PRIORITY_STYLES.medium;
     const { Icon } = p;
 
-    const CategoryIcon = ICON_MAP[task.categoryId.icon] || ICON_MAP.Clipboard;
-    console.log('icon :', task.categoryId.icon);
-    console.log('Priority:', p);
-console.log('Icon:', p.Icon);
+    const CategoryIcon = task.categoryId?.icon ? (ICON_MAP[task.categoryId.icon] || ICON_MAP.Clipboard) : null;
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr; // fallback si format invalide
+        return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
 
     return (
         <main className="max-w-3xl mx-auto p-6 lg:p-12">
@@ -165,7 +169,7 @@ console.log('Icon:', p.Icon);
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-main-400">Date limite</p>
                                 <p className="font-bold text-main-800">
-                                    {new Date(task.before).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    {formatDate(task.before)}
                                 </p>
                             </div>
                         </div>
