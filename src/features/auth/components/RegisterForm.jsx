@@ -17,7 +17,9 @@ export function RegisterForm() {
 
         try {
             await authService.register(data);
-            navigate('/');
+            navigate('/auth/login', {
+                state: { successMessage: 'Compte créé avec succès ! Tu peux maintenant te connecter 🌿' }
+            });
         } catch (err) {
             console.error('Erreur inscription:', err);
             if (err.response?.status === 409) {
