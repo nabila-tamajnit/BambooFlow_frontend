@@ -16,10 +16,17 @@ export const Login = () => {
                     <img src="/icons/bambooflow_logo.svg" className="w-40 opacity-10" alt="" />
                 </div>
 
-                <div className="text-center mb-10 relative">
-                    <h1 className="text-4xl text-main-800 font-chewy mb-2">Bon retour !</h1>
-                    <p className="text-main-500 font-medium text-sm px-8">Le panda a hâte de voir tes progrès aujourd'hui. 🌿</p>
-                </div>
+                {successMessage ? (
+                    <div className="text-center mb-10 relative">
+                        <h1 className="text-4xl text-main-800 font-chewy mb-2">Bienvenue dans ta forêt !</h1>
+                        <p className="text-main-500 font-medium text-sm px-8">Le panda a hâte de voir tes progrès aujourd'hui. 🌿</p>
+                    </div>
+                ) : (
+                    <div className="text-center mb-10 relative">
+                        <h1 className="text-4xl text-main-800 font-chewy mb-2">Bon retour !</h1>
+                        <p className="text-main-500 font-medium text-sm px-8">Le panda a hâte de voir tes progrès aujourd'hui. 🌿</p>
+                    </div>
+                )}
 
                 <LoginForm />
 
