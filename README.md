@@ -63,7 +63,7 @@ npm run dev
 ## 🔗 Repo lié
 
 Le backend (API REST Express/MongoDB) est disponible ici :
-**[bambooflow-backend →](https://github.com/nabila-tamajnit/bambooflow-backend)**
+**[bambooflow-backend →](https://github.com/nabila-tamajnit/BambooFlow_backend)**
 
 ---
 
