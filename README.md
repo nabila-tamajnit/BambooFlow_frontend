@@ -42,29 +42,10 @@
 
 ---
 
-## 🛠️ Installation
+## 🔗 Liens
 
-```bash
-# Cloner le projet
-git clone https://github.com/nabila-tamajnit/bambooflow-frontend
-
-# Installer les dépendances
-npm install
-
-# Créer le fichier d'environnement
-cp .env.example .env
-# → renseigner VITE_API_URL=http://localhost:3000/api
-
-# Lancer le serveur local
-npm run dev
-```
-
----
-
-## 🔗 Repo lié
-
-Le backend (API REST Express/MongoDB) est disponible ici :
-**[bambooflow-backend →](https://github.com/nabila-tamajnit/BambooFlow_backend)**
+[![Demo Live](https://img.shields.io/badge/-Demo%20Live-000000?style=for-the-badge)](https://bambooflow-app.vercel.app/)
+[![Backend Repo](https://img.shields.io/badge/-Backend%20Repo-3E3742?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nabila-tamajnit/BambooFlow_backend)
 
 ---
 
