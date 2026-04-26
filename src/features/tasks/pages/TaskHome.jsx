@@ -10,6 +10,8 @@ import taskService from '../../../services/task.service';
 import categoryService from '../../../services/category.service';
 import { Plus, X, Sprout, CheckCircle2, Clock, AlertTriangle, LayoutGrid, Flame } from 'lucide-react';
 import { ICON_MAP } from '../utils/categoryIcons';
+import { useServerWakeup } from '../../../hooks/useServerWakeup';
+import { WakeupBanner } from '../../../components/WakeupBanner';
 
 export const TaskHome = () => {
     const profile = useAtomValue(userProfileAtom);
@@ -21,6 +23,7 @@ export const TaskHome = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [globalError, setGlobalError] = useState(null);
     const [preselectedCategoryId, setPreselectedCategoryId] = useState(null);
+    const { isWakingUp, startWatch, stopWatch } = useServerWakeup();
 
     // ── Filtres ───────────────────────────────────────────────────────────
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -37,6 +40,7 @@ export const TaskHome = () => {
     // ── Chargement initial ────────────────────────────────────────────────
     useEffect(() => {
         const init = async () => {
+            startWatch();
             try {
                 const [fetchedTasks, fetchedCats] = await Promise.all([
                     taskService.getAll(),
@@ -48,6 +52,7 @@ export const TaskHome = () => {
                 console.error(err);
                 setGlobalError('Impossible de charger les données. Vérifie que le serveur est lancé.');
             } finally {
+                stopWatch();
                 setIsLoading(false);
             }
         };
@@ -164,11 +169,12 @@ export const TaskHome = () => {
     };
 
     const CategoryIcon = selectedCategory
-    ? ICON_MAP[selectedCategory.icon]
-    : null;
+        ? ICON_MAP[selectedCategory.icon]
+        : null;
 
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+            <WakeupBanner visible={isWakingUp} />
 
             {/* ── Header ──────────────────────────────────────────────── */}
             <section className="flex flex-wrap justify-between items-center gap-4 bg-white p-6 rounded-[2.5rem] border border-main-100 shadow-sm">
@@ -182,7 +188,15 @@ export const TaskHome = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => showForm ? handleCloseForm() : (() => { setPreselectedCategoryId(null); setShowForm(true); })()}
+                    onClick={() => {
+                        if (showForm) {
+                            handleCloseForm();
+                        } else {
+                            setPreselectedCategoryId(null);
+                            setShowForm(true);
+                            window.scrollTo({ top: 0, behavior: 'smooth' }); // ← ici
+                        }
+                    }}
                     className={`btn flex items-center gap-2 ${showForm ? 'bg-red-500 hover:bg-red-600 shadow-red-200' : ''}`}
                 >
                     {showForm ? <X size={18} /> : <Plus size={18} />}
