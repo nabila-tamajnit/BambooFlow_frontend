@@ -3,7 +3,7 @@
 > Cultivez votre focus. Une application de gestion de tâches et de productivité avec timer Pomodoro intégré.
 
 [![Demo Live](https://img.shields.io/badge/-Demo%20Live-000000?style=for-the-badge)](https://bambooflow-app.vercel.app/)
-[![Backend Repo](https://img.shields.io/badge/-Backend%20Repo-3E3742?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nabila-tamajnit/BambooFlow-backend)
+[![Backend Repo](https://img.shields.io/badge/-Backend%20Repo-3E3742?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nabila-tamajnit/BambooFlow_backend)
 
 <br>
 
