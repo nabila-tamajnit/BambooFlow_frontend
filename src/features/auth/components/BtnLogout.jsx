@@ -1,4 +1,3 @@
-// src/features/auth/components/BtnLogout.jsx
 import { useSetAtom } from 'jotai';
 import { tokenAtom } from '../../../atoms/auth.atom';
 import { userProfileAtom } from '../../../atoms/user.atom';

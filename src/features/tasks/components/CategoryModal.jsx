@@ -1,4 +1,3 @@
-// src/features/tasks/components/CategoryModal.jsx
 import { useState } from 'react';
 import { X, Tag } from 'lucide-react';
 import categoryService from '../../../services/category.service';

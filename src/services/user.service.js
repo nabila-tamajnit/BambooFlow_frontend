@@ -1,4 +1,3 @@
-// src/services/user.service.js — ajouter getMe
 import axios from 'axios';
 import { getDefaultStore } from 'jotai';
 import { tokenAtom } from '../atoms/auth.atom';

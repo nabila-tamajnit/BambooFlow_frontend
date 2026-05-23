@@ -1,4 +1,3 @@
-// src/layout/pages/Profile.jsx
 import { useAtomValue, useSetAtom } from 'jotai';
 import { tokenAtom } from '../../atoms/auth.atom';
 import { userProfileAtom } from '../../atoms/user.atom';

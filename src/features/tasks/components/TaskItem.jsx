@@ -1,4 +1,3 @@
-// src/features/tasks/components/TaskItem.jsx
 import { NavLink } from 'react-router';
 import { Trash2, CheckCircle, Pencil, Clock, Flame, Zap, Leaf } from 'lucide-react';
 import { ICON_MAP } from '../utils/categoryIcons';

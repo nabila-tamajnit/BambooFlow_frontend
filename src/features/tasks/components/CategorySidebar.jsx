@@ -1,4 +1,3 @@
-// src/features/tasks/components/CategorySidebar.jsx — version finale
 import { Plus, Tag, LayoutGrid, Pencil, Trash2 } from 'lucide-react';
 
 import { ICON_MAP } from '../utils/categoryIcons';

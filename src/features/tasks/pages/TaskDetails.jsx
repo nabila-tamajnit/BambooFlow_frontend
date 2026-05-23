@@ -1,4 +1,3 @@
-// src/features/tasks/pages/TaskDetails.jsx
 import { useEffect, useState } from 'react';
 import { NavLink, useParams, useNavigate } from 'react-router';
 import taskService from '../../../services/task.service';

@@ -1,4 +1,3 @@
-// src/features/tasks/components/TaskList.jsx
 import { TaskItem } from './TaskItem';
 import { Flame, Zap, Leaf, CheckCircle2 } from 'lucide-react';
 

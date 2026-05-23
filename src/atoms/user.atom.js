@@ -1,4 +1,3 @@
-// src/atoms/user.atom.js
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 

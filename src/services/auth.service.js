@@ -1,4 +1,3 @@
-// src/services/auth.service.js
 import axios from 'axios';
 import { getDefaultStore } from 'jotai';
 import { tokenAtom } from '../atoms/auth.atom';

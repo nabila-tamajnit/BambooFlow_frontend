@@ -1,4 +1,3 @@
-// src/features/tasks/pages/TaskHome.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import { userProfileAtom } from '../../../atoms/user.atom';
